@@ -27,7 +27,7 @@ const ParameterInfo: React.FC<ParameterInfoProps> = ({
   return (
     <div className="glass-effect rounded-xl p-6 mb-6 border border-primary-light/10">
       <h3 className="font-heading text-xl font-bold text-white mb-4">
-        📋 S-box Parameters
+        S-box Parameters
       </h3>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -69,7 +69,7 @@ const ParameterInfo: React.FC<ParameterInfoProps> = ({
               </div>
               {defaultConstant && constant !== defaultConstant && (
                 <p className="font-body text-xs text-accent-muted mt-2">
-                  ⚠️ Different from default (0x{defaultConstant.toString(16).toUpperCase()})
+                  Different from default (0x{defaultConstant.toString(16).toUpperCase()})
                 </p>
               )}
             </div>
@@ -93,7 +93,7 @@ const ParameterInfo: React.FC<ParameterInfoProps> = ({
       {isDefault && (
         <div className="mt-4 p-3 bg-accent-pink/20 border border-accent-pink/40 rounded-lg">
           <p className="font-body text-sm text-accent-pink text-center">
-            ✓ Using default parameters (K44 Matrix - Best Performer, C=0x63)
+            Using default parameters (K44 Matrix - Best Performer, C=0x63)
           </p>
         </div>
       )}
@@ -101,7 +101,7 @@ const ParameterInfo: React.FC<ParameterInfoProps> = ({
       {!isDefault && (
         <div className="mt-4 p-3 bg-primary-light/10 border border-primary-light/20 rounded-lg">
           <p className="font-body text-sm text-primary-light text-center">
-            ⚙️ Custom parameters active - Different from defaults
+            Custom parameters active - Different from defaults
           </p>
         </div>
       )}

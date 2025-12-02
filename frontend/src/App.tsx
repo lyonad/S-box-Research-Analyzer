@@ -15,6 +15,7 @@ import SBoxGrid from './components/SBoxGrid';
 import MetricsPanel from './components/MetricsPanel';
 import ComparisonTable from './components/ComparisonTable';
 import LoadingSpinner from './components/LoadingSpinner';
+import EncryptionPanel from './components/EncryptionPanel';
 import apiService from './api';
 import { ComparisonData, MetricComparison, AnalysisResults, SBox } from './types';
 
@@ -29,6 +30,7 @@ const DEFAULT_CONSTANT = 0x63;
 function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [backendStatus, setBackendStatus] = useState<'active' | 'inactive' | 'checking'>('checking');
   const [comparisonData, setComparisonData] = useState<ComparisonData | null>(null);
   const [activeTab, setActiveTab] = useState<'k44' | 'aes' | 'comparison' | 'custom'>('comparison');
   const [customParams, setCustomParams] = useState<{
@@ -48,32 +50,40 @@ function App() {
     constant: number;
   } | null>(null);
 
-  // Check API health on mount
+  // Check API health on mount and periodically
   useEffect(() => {
     const checkHealth = async () => {
       try {
+        setBackendStatus('checking');
         await apiService.healthCheck();
+        setBackendStatus('active');
+        // Clear error if backend is now active
+        setError((prevError) => {
+          if (prevError && prevError.includes('Unable to connect to backend API')) {
+            return null;
+          }
+          return prevError;
+        });
       } catch (err) {
-        setError('Unable to connect to backend API. Please ensure the server is running on http://localhost:8000');
+        setBackendStatus('inactive');
+        // Only set error on first failure, not on every poll
+        setError((prevError) => {
+          if (!prevError) {
+            return 'Unable to connect to backend API. Please ensure the server is running on http://localhost:8000';
+          }
+          return prevError;
+        });
       }
     };
+
+    // Check immediately
     checkHealth();
-  }, []);
 
-  const handleGenerateAndCompare = async () => {
-    setLoading(true);
-    setError(null);
+    // Poll every 5 seconds
+    const interval = setInterval(checkHealth, 5000);
 
-    try {
-      const data = await apiService.compareSBoxes();
-      setComparisonData(data);
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to generate and analyze S-boxes. Please check the backend server.');
-      console.error('Error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    return () => clearInterval(interval);
+  }, []); // Empty dependency array - only run on mount
 
   const handleParametersChange = (params: {
     matrix: number[];
@@ -81,44 +91,72 @@ function App() {
     useCustom: boolean;
   }) => {
       setCustomParams(params);
-    // Don't auto-generate, let user click button
+    // Clear custom S-box when parameters change
     setCustomSBox(null);
     setCustomAnalysis(null);
     setCustomSBoxParams(null);
   };
 
-  const handleGenerateCustom = async () => {
+  const handleGenerateAndCompare = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      // Always send the matrix and constant, regardless of useCustom flag
-      // The API will handle determining if it's K44, AES, or custom
-      const sboxResponse = await apiService.generateSBox(
-        false, // Don't use use_k44 flag when we have explicit matrix
-        customParams.matrix,
-        customParams.constant
-      );
-      setCustomSBox(sboxResponse.sbox);
-      
-      // Determine matrix name for display
-      const matrixName = sboxResponse.matrix_used || 
-        (customParams.useCustom ? 'Custom Matrix' : 'Selected Matrix');
-      
-      // Store parameters for display
-      setCustomSBoxParams({
-        matrix: [...customParams.matrix],
-        matrixName: matrixName,
-        constant: customParams.constant,
-      });
-      
-      const analysisResponse = await apiService.analyzeSBox(
-        sboxResponse.sbox,
-        `${matrixName} S-box (C=0x${customParams.constant.toString(16).toUpperCase()})`
-      );
-      setCustomAnalysis(analysisResponse);
+      // Check if custom parameters are different from defaults
+      const hasCustomParams = customParams.useCustom || 
+        JSON.stringify(customParams.matrix) !== JSON.stringify(DEFAULT_K44_MATRIX) || 
+        customParams.constant !== DEFAULT_CONSTANT;
+
+      let customSBoxToCompare: number[] | undefined = undefined;
+      let customSBoxParamsToStore: {
+        matrix: number[];
+        matrixName: string;
+        constant: number;
+      } | null = null;
+
+      // Generate custom S-box if custom parameters are set
+      if (hasCustomParams) {
+        try {
+          const sboxResponse = await apiService.generateSBox(
+            false, // Don't use use_k44 flag when we have explicit matrix
+            customParams.matrix,
+            customParams.constant
+          );
+          
+          customSBoxToCompare = sboxResponse.sbox;
+          
+          // Determine matrix name for display
+          const matrixName = sboxResponse.matrix_used || 
+            (customParams.useCustom ? 'Custom Matrix' : 'Selected Matrix');
+          
+          // Store parameters for display
+          customSBoxParamsToStore = {
+            matrix: [...customParams.matrix],
+            matrixName: matrixName,
+            constant: customParams.constant,
+          };
+          
+          // Store custom S-box and params
+          setCustomSBox(sboxResponse.sbox);
+          setCustomSBoxParams(customSBoxParamsToStore);
+          
+          // Analyze custom S-box
+          const analysisResponse = await apiService.analyzeSBox(
+            sboxResponse.sbox,
+            `${matrixName} S-box (C=0x${customParams.constant.toString(16).toUpperCase()})`
+          );
+          setCustomAnalysis(analysisResponse);
+        } catch (err: any) {
+          console.warn('Failed to generate custom S-box, continuing with K44 and AES only:', err);
+          // Continue with comparison even if custom generation fails
+        }
+      }
+
+      // Generate comparison with K44, AES, and custom (if available)
+      const data = await apiService.compareSBoxes(customSBoxToCompare);
+      setComparisonData(data);
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to generate custom S-box. Please check parameters.');
+      setError(err.response?.data?.detail || 'Failed to generate and analyze S-boxes. Please check the backend server.');
       console.error('Error:', err);
     } finally {
       setLoading(false);
@@ -129,59 +167,70 @@ function App() {
   const getComparisonMetrics = (): MetricComparison[] => {
     if (!comparisonData) return [];
 
+    const hasCustom = comparisonData.custom_analysis !== null && comparisonData.custom_analysis !== undefined;
+
     return [
       {
         name: 'Nonlinearity (Avg)',
         k44: comparisonData.k44_analysis.nonlinearity.average,
         aes: comparisonData.aes_analysis.nonlinearity.average,
+        custom: hasCustom ? comparisonData.custom_analysis!.nonlinearity.average : undefined,
         target: '112',
       },
       {
         name: 'Nonlinearity (Min)',
         k44: comparisonData.k44_analysis.nonlinearity.min,
         aes: comparisonData.aes_analysis.nonlinearity.min,
+        custom: hasCustom ? comparisonData.custom_analysis!.nonlinearity.min : undefined,
         target: '112',
       },
       {
         name: 'SAC (Average)',
         k44: comparisonData.k44_analysis.sac.average,
         aes: comparisonData.aes_analysis.sac.average,
+        custom: hasCustom ? comparisonData.custom_analysis!.sac.average : undefined,
         target: '~0.5',
       },
       {
         name: 'SAC (Std Dev)',
         k44: comparisonData.k44_analysis.sac.std,
         aes: comparisonData.aes_analysis.sac.std,
+        custom: hasCustom ? comparisonData.custom_analysis!.sac.std : undefined,
         target: 'Lower is better',
       },
       {
         name: 'BIC-NL (Average)',
         k44: comparisonData.k44_analysis.bic_nl.average,
         aes: comparisonData.aes_analysis.bic_nl.average,
+        custom: hasCustom ? comparisonData.custom_analysis!.bic_nl.average : undefined,
         target: 'Higher is better',
       },
       {
         name: 'BIC-SAC (Avg Deviation)',
         k44: comparisonData.k44_analysis.bic_sac.average_deviation,
         aes: comparisonData.aes_analysis.bic_sac.average_deviation,
+        custom: hasCustom ? comparisonData.custom_analysis!.bic_sac.average_deviation : undefined,
         target: 'Lower is better',
       },
       {
         name: 'LAP (Max)',
         k44: comparisonData.k44_analysis.lap.max_lap,
         aes: comparisonData.aes_analysis.lap.max_lap,
+        custom: hasCustom ? comparisonData.custom_analysis!.lap.max_lap : undefined,
         target: 'Lower is better',
       },
       {
         name: 'LAP (Max Bias)',
         k44: comparisonData.k44_analysis.lap.max_bias,
         aes: comparisonData.aes_analysis.lap.max_bias,
+        custom: hasCustom ? comparisonData.custom_analysis!.lap.max_bias : undefined,
         target: 'Lower is better',
       },
       {
         name: 'DAP (Max)',
         k44: comparisonData.k44_analysis.dap.max_dap,
         aes: comparisonData.aes_analysis.dap.max_dap,
+        custom: hasCustom ? comparisonData.custom_analysis!.dap.max_dap : undefined,
         target: 'Lower is better',
       },
     ];
@@ -206,9 +255,18 @@ function App() {
     };
   };
 
+  const getCustomResults = (): AnalysisResults | null => {
+    if (!comparisonData || !comparisonData.custom_analysis) return null;
+    return {
+      sbox_name: customSBoxParams?.matrixName || 'Custom S-box',
+      ...comparisonData.custom_analysis,
+      analysis_time_ms: comparisonData.analysis_time_ms / 3, // Approximate
+    };
+  };
+
   return (
     <div className="min-h-screen w-full bg-neutral-darker">
-      <Header />
+      <Header backendStatus={backendStatus} />
       <Hero />
       <TeamSection />
 
@@ -233,37 +291,17 @@ function App() {
           defaultConstant={DEFAULT_CONSTANT}
           autoGenerate={false}
         />
-        
-        {/* Generate Custom S-box Button */}
-        {(customParams.useCustom || 
-          JSON.stringify(customParams.matrix) !== JSON.stringify(DEFAULT_K44_MATRIX) || 
-          customParams.constant !== DEFAULT_CONSTANT) && (
-          <div className="mb-8 glass-effect rounded-2xl p-6 border border-primary-light/10">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-heading text-xl font-bold text-white mb-2">
-                  Custom Parameters Active
-                </h3>
-                <p className="font-body text-sm text-primary-light">
-                  Generate S-box with custom matrix and constant
-                </p>
-              </div>
-              <button
-                onClick={handleGenerateCustom}
-                disabled={loading}
-                className="px-8 py-4 bg-accent-pink hover:bg-accent-muted text-white rounded-xl font-body font-bold text-lg transition-all shadow-lg hover:shadow-2xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? 'Generating...' : 'Generate Custom S-box'}
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* Control Panel */}
         <ControlPanel 
           onGenerateAndCompare={handleGenerateAndCompare} 
           loading={loading}
           showCustomOption={true}
+          hasCustomParams={
+            customParams.useCustom || 
+            JSON.stringify(customParams.matrix) !== JSON.stringify(DEFAULT_K44_MATRIX) || 
+            customParams.constant !== DEFAULT_CONSTANT
+          }
         />
         
 
@@ -386,7 +424,7 @@ function App() {
                   <ComparisonTable comparisons={getComparisonMetrics()} />
                   
                   {/* Side-by-side S-boxes */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  <div className={`grid grid-cols-1 ${comparisonData.custom_sbox ? 'lg:grid-cols-3' : 'lg:grid-cols-2'} gap-8`}>
                     <SBoxGrid 
                       sbox={comparisonData.k44_sbox} 
                       title="Research S-box (K44)"
@@ -397,29 +435,65 @@ function App() {
                       title="AES S-box"
                       highlightColor="bg-accent-muted"
                     />
+                    {comparisonData.custom_sbox && (
+                      <SBoxGrid 
+                        sbox={comparisonData.custom_sbox} 
+                        title={`Custom S-box${customSBoxParams ? ` (${customSBoxParams.matrixName})` : ''}`}
+                        highlightColor="bg-pink-500"
+                      />
+                    )}
                   </div>
                 </>
               )}
 
-              {activeTab === 'custom' && customSBox && customAnalysis && customSBoxParams && (
+              {activeTab === 'custom' && (
                 <>
-                  <ParameterInfo
-                    matrix={customSBoxParams.matrix}
-                    matrixName={customSBoxParams.matrixName}
-                    constant={customSBoxParams.constant}
-                    defaultMatrix={DEFAULT_K44_MATRIX}
-                    defaultConstant={DEFAULT_CONSTANT}
-                  />
-                  <SBoxGrid 
-                    sbox={customSBox} 
-                    title={`${customSBoxParams.matrixName} S-box (C=0x${customSBoxParams.constant.toString(16).toUpperCase()})`}
-                    highlightColor="bg-accent-pink"
-                  />
-                  <MetricsPanel 
-                    results={customAnalysis} 
-                    title={`${customSBoxParams.matrixName} S-box - Cryptographic Analysis`}
-                    accentColor="pink"
-                  />
+                  {/* Show custom from comparison if available, otherwise from standalone */}
+                  {comparisonData && comparisonData.custom_sbox && comparisonData.custom_analysis ? (
+                    <>
+                      {customSBoxParams && (
+                        <ParameterInfo
+                          matrix={customSBoxParams.matrix}
+                          matrixName={customSBoxParams.matrixName}
+                          constant={customSBoxParams.constant}
+                          defaultMatrix={DEFAULT_K44_MATRIX}
+                          defaultConstant={DEFAULT_CONSTANT}
+                        />
+                      )}
+                      <SBoxGrid 
+                        sbox={comparisonData.custom_sbox} 
+                        title={`Custom S-box${customSBoxParams ? ` (${customSBoxParams.matrixName})` : ''}`}
+                        highlightColor="bg-pink-500"
+                      />
+                      {getCustomResults() && (
+                        <MetricsPanel 
+                          results={getCustomResults()!} 
+                          title={`Custom S-box - Cryptographic Analysis`}
+                          accentColor="pink"
+                        />
+                      )}
+                    </>
+                  ) : customSBox && customAnalysis && customSBoxParams ? (
+                    <>
+                      <ParameterInfo
+                        matrix={customSBoxParams.matrix}
+                        matrixName={customSBoxParams.matrixName}
+                        constant={customSBoxParams.constant}
+                        defaultMatrix={DEFAULT_K44_MATRIX}
+                        defaultConstant={DEFAULT_CONSTANT}
+                      />
+                      <SBoxGrid 
+                        sbox={customSBox} 
+                        title={`${customSBoxParams.matrixName} S-box (C=0x${customSBoxParams.constant.toString(16).toUpperCase()})`}
+                        highlightColor="bg-accent-pink"
+                      />
+                      <MetricsPanel 
+                        results={customAnalysis} 
+                        title={`${customSBoxParams.matrixName} S-box - Cryptographic Analysis`}
+                        accentColor="pink"
+                      />
+                    </>
+                  ) : null}
                 </>
               )}
             </div>
@@ -455,10 +529,26 @@ function App() {
           </div>
         )}
 
+        {/* Encryption & Decryption Panel */}
+        <div className="mt-16">
+          <div className="mb-6">
+            <h2 className="font-heading text-3xl font-bold text-white mb-2">
+              Encryption & Decryption
+            </h2>
+            <div className="w-24 h-1 bg-gradient-primary"></div>
+            <p className="font-body text-primary-light mt-4">
+              Encrypt and decrypt messages using AES-128 with K44, AES, or custom S-box
+            </p>
+          </div>
+          <EncryptionPanel 
+            customSBox={customSBox}
+            customSBoxName={customSBoxParams?.matrixName || 'Custom'}
+          />
+        </div>
+
         {/* Initial State */}
         {!loading && !comparisonData && !customSBox && !error && (
           <div className="glass-effect rounded-2xl p-16 text-center border border-primary-light/10">
-            <div className="text-7xl mb-6">🔐</div>
             <h2 className="font-heading text-3xl font-bold text-white mb-4">
               Ready to Analyze
             </h2>

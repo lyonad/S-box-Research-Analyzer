@@ -3,7 +3,7 @@
  */
 
 import axios from 'axios';
-import { SBox, AnalysisResults, ComparisonData } from './types';
+import { SBox, AnalysisResults, ComparisonData, EncryptRequest, EncryptResponse, DecryptRequest, DecryptResponse } from './types';
 
 const API_BASE_URL = 'http://localhost:8000';
 
@@ -59,10 +59,12 @@ export const apiService = {
   },
 
   /**
-   * Compare research S-box (K44) and standard AES S-boxes
+   * Compare research S-box (K44) and standard AES S-boxes, optionally including custom S-box
    */
-  async compareSBoxes(): Promise<ComparisonData> {
-    const response = await api.get('/compare');
+  async compareSBoxes(customSBox?: number[]): Promise<ComparisonData> {
+    const response = await api.post('/compare', {
+      custom_sbox: customSBox || null,
+    });
     return response.data;
   },
 
@@ -79,6 +81,22 @@ export const apiService = {
    */
   async healthCheck(): Promise<any> {
     const response = await api.get('/health');
+    return response.data;
+  },
+
+  /**
+   * Encrypt plaintext using AES-128 with K44 or AES S-box
+   */
+  async encrypt(request: EncryptRequest): Promise<EncryptResponse> {
+    const response = await api.post('/encrypt', request);
+    return response.data;
+  },
+
+  /**
+   * Decrypt ciphertext using AES-128 with K44 or AES S-box
+   */
+  async decrypt(request: DecryptRequest): Promise<DecryptResponse> {
+    const response = await api.post('/decrypt', request);
     return response.data;
   },
 };

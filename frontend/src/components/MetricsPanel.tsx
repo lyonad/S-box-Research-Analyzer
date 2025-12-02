@@ -35,7 +35,7 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, icon, metrics, accentCol
   return (
     <div className="glass-effect rounded-2xl p-6 hover:shadow-2xl transition-all duration-300 border border-primary-light/10">
       <div className="flex items-center mb-5 pb-4 border-b border-primary-light/10">
-        <span className="text-3xl mr-3">{icon}</span>
+        {icon && <span className="text-3xl mr-3">{icon}</span>}
         <h4 className="font-heading text-xl font-bold text-white">{title}</h4>
       </div>
       
@@ -89,7 +89,7 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({ results, title, accentColor
         {/* Nonlinearity */}
         <MetricCard
           title="Nonlinearity (NL)"
-          icon="🔢"
+          icon=""
           accentColor={accentColor}
           metrics={[
             { label: 'Minimum', value: results.nonlinearity.min, status: 'info' },
@@ -106,7 +106,7 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({ results, title, accentColor
         {/* SAC */}
         <MetricCard
           title="SAC"
-          icon="🎯"
+          icon=""
           accentColor={accentColor}
           metrics={[
             { 
@@ -124,7 +124,7 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({ results, title, accentColor
         {/* BIC-NL */}
         <MetricCard
           title="BIC-NL"
-          icon="🔗"
+          icon=""
           accentColor={accentColor}
           metrics={[
             { label: 'Minimum', value: results.bic_nl.min, status: 'info' },
@@ -136,7 +136,7 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({ results, title, accentColor
         {/* BIC-SAC */}
         <MetricCard
           title="BIC-SAC"
-          icon="📊"
+          icon=""
           accentColor={accentColor}
           metrics={[
             { 

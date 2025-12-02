@@ -4,7 +4,40 @@
 
 import React from 'react';
 
-const Header: React.FC = () => {
+interface HeaderProps {
+  backendStatus: 'active' | 'inactive' | 'checking';
+}
+
+const Header: React.FC<HeaderProps> = ({ backendStatus }) => {
+  const getStatusConfig = () => {
+    switch (backendStatus) {
+      case 'active':
+        return {
+          color: 'bg-green-500',
+          text: 'Active',
+          textColor: 'text-green-400',
+          pulse: true,
+        };
+      case 'inactive':
+        return {
+          color: 'bg-red-500',
+          text: 'Inactive',
+          textColor: 'text-red-400',
+          pulse: false,
+        };
+      case 'checking':
+      default:
+        return {
+          color: 'bg-yellow-500',
+          text: 'Checking...',
+          textColor: 'text-yellow-400',
+          pulse: true,
+        };
+    }
+  };
+
+  const statusConfig = getStatusConfig();
+
   return (
     <header className="w-full bg-neutral-dark border-b border-primary-light/10 shadow-lg sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4">
@@ -25,12 +58,24 @@ const Header: React.FC = () => {
             </div>
           </div>
           
-          <div className="hidden md:flex items-center gap-4">
+          <div className="flex items-center gap-4">
             <div className="text-right">
-              <div className="text-xs text-primary-light font-semibold uppercase tracking-wide">Status</div>
-              <div className="flex items-center gap-2 mt-1">
-                <div className="w-2 h-2 bg-accent-pink rounded-full animate-pulse"></div>
-                <span className="text-sm font-semibold text-accent-pink">Active</span>
+              <div className="text-xs text-primary-light font-semibold uppercase tracking-wide hidden md:block">
+                Backend Status
+              </div>
+              <div className="flex items-center gap-2 mt-1 justify-end md:justify-start">
+                <div 
+                  className={`w-2 h-2 ${statusConfig.color} rounded-full ${
+                    statusConfig.pulse ? 'animate-pulse' : ''
+                  }`}
+                  title={`Backend is ${statusConfig.text.toLowerCase()}`}
+                ></div>
+                <span className={`text-sm font-semibold ${statusConfig.textColor} hidden sm:inline`}>
+                  {statusConfig.text}
+                </span>
+                <span className={`text-xs font-semibold ${statusConfig.textColor} sm:hidden`}>
+                  {backendStatus === 'active' ? 'ON' : backendStatus === 'inactive' ? 'OFF' : '...'}
+                </span>
               </div>
             </div>
           </div>

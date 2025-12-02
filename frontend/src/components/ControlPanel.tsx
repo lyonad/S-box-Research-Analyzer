@@ -8,9 +8,15 @@ interface ControlPanelProps {
   onGenerateAndCompare: () => void;
   loading: boolean;
   showCustomOption?: boolean;
+  hasCustomParams?: boolean;
 }
 
-const ControlPanel: React.FC<ControlPanelProps> = ({ onGenerateAndCompare, loading, showCustomOption = false }) => {
+const ControlPanel: React.FC<ControlPanelProps> = ({ 
+  onGenerateAndCompare, 
+  loading, 
+  showCustomOption = false,
+  hasCustomParams = false
+}) => {
   return (
     <div className="glass-effect rounded-2xl p-8 mb-8 border border-primary-light/10">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
@@ -70,12 +76,20 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ onGenerateAndCompare, loadi
           
           <div className="font-body text-sm text-primary-light text-center">
             Performs complete cryptographic analysis
+            {hasCustomParams && (
+              <span className="block mt-1 text-accent-pink font-semibold">
+                Custom S-box will be included automatically
+              </span>
+            )}
           </div>
           
           {showCustomOption && (
             <div className="mt-2 text-center">
               <p className="font-body text-xs text-primary-light/70">
-                Use Research Parameters panel above to customize
+                {hasCustomParams 
+                  ? 'Custom parameters detected - will be included in comparison'
+                  : 'Use Research Parameters panel above to customize'
+                }
               </p>
             </div>
           )}

@@ -250,7 +250,7 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
                   : 'bg-primary-light/10 text-primary-light hover:bg-primary-light/20'
               }`}
             >
-              📄 Paper
+              Paper
             </button>
             <button
               onClick={() => handleCategoryChange('standard')}
@@ -260,7 +260,7 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
                   : 'bg-primary-light/10 text-primary-light hover:bg-primary-light/20'
               }`}
             >
-              ⭐ Standard
+              Standard
             </button>
             <button
               onClick={() => handleCategoryChange('variations')}
@@ -270,7 +270,7 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
                   : 'bg-primary-light/10 text-primary-light hover:bg-primary-light/20'
               }`}
             >
-              🔄 Variations
+              Variations
             </button>
             <button
               onClick={() => handleCategoryChange('custom')}
@@ -280,7 +280,7 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
                   : 'bg-primary-light/10 text-primary-light hover:bg-primary-light/20'
               }`}
             >
-              ✏️ Custom
+              Custom
             </button>
           </div>
 

@@ -11,6 +11,8 @@ import time
 
 from sbox_generator import SBoxGenerator, K44_MATRIX, AES_MATRIX, C_AES, AVAILABLE_MATRICES
 from cryptographic_tests import analyze_sbox
+from aes_cipher import create_cipher
+import base64
 
 app = FastAPI(
     title="AES S-box Research Analyzer API",
@@ -65,14 +67,51 @@ class AnalysisResponse(BaseModel):
     analysis_time_ms: float
 
 
+class ComparisonRequest(BaseModel):
+    """Request model for comparison"""
+    custom_sbox: Optional[List[int]] = None  # Optional custom S-box to include in comparison
+
+
 class ComparisonResponse(BaseModel):
     """Response model for comparison between S-boxes"""
     k44_sbox: List[int]
     aes_sbox: List[int]
+    custom_sbox: Optional[List[int]] = None
     k44_analysis: Dict
     aes_analysis: Dict
+    custom_analysis: Optional[Dict] = None
     generation_time_ms: float
     analysis_time_ms: float
+
+
+class EncryptRequest(BaseModel):
+    """Request model for encryption"""
+    plaintext: str
+    key: str  # Will be converted to bytes, must be 16 bytes when encoded
+    sbox_type: str = "k44"  # "k44", "aes", or "custom"
+    custom_sbox: Optional[List[int]] = None  # Required if sbox_type is "custom"
+
+
+class DecryptRequest(BaseModel):
+    """Request model for decryption"""
+    ciphertext: str  # Base64 encoded
+    key: str  # Will be converted to bytes, must be 16 bytes when encoded
+    sbox_type: str = "k44"  # "k44", "aes", or "custom"
+    custom_sbox: Optional[List[int]] = None  # Required if sbox_type is "custom"
+
+
+class EncryptResponse(BaseModel):
+    """Response model for encryption"""
+    ciphertext: str  # Base64 encoded
+    sbox_type: str
+    encryption_time_ms: float
+
+
+class DecryptResponse(BaseModel):
+    """Response model for decryption"""
+    plaintext: str
+    sbox_type: str
+    decryption_time_ms: float
 
 
 # API Endpoints
@@ -83,10 +122,13 @@ def root():
     return {
         "message": "Advanced S-Box 44 Analyzer API",
         "version": "1.0.0",
-        "endpoints": {
+            "endpoints": {
             "generate": "/generate-sbox",
             "analyze": "/analyze",
-            "compare": "/compare",
+            "compare": "/compare (POST)",
+            "encrypt": "/encrypt",
+            "decrypt": "/decrypt",
+            "matrix-info": "/matrix-info",
             "health": "/health"
         }
     }
@@ -210,38 +252,67 @@ def analyze(request: SBoxAnalyzeRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/compare", response_model=ComparisonResponse)
-def compare():
+@app.post("/compare", response_model=ComparisonResponse)
+def compare(request: ComparisonRequest = None):
     """
-    Compare K44 S-box with standard AES S-box
+    Compare K44 S-box with standard AES S-box, optionally including custom S-box
     
     Generates both S-boxes and performs complete analysis
     Returns side-by-side comparison of all metrics
+    
+    Args:
+        custom_sbox: Optional custom S-box (256 values) to include in comparison
+    
+    Returns:
+        Comparison of K44, AES, and optionally custom S-boxes
     """
     try:
+        if request is None:
+            request = ComparisonRequest()
+        
         start_time = time.time()
         
-        # Generate both S-boxes
+        # Generate both standard S-boxes
         k44_sbox = generator.generate_k44_sbox()
         aes_sbox = generator.generate_aes_sbox()
         
+        # Validate custom S-box if provided
+        custom_sbox = None
+        if request.custom_sbox:
+            if len(request.custom_sbox) != 256:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Custom S-box must contain exactly 256 values"
+                )
+            if not all(0 <= val <= 255 for val in request.custom_sbox):
+                raise HTTPException(
+                    status_code=400,
+                    detail="All S-box values must be in range 0-255"
+                )
+            custom_sbox = request.custom_sbox
+        
         generation_time = (time.time() - start_time) * 1000
         
-        # Analyze both
+        # Analyze all S-boxes
         analysis_start = time.time()
         k44_analysis = analyze_sbox(k44_sbox)
         aes_analysis = analyze_sbox(aes_sbox)
+        custom_analysis = analyze_sbox(custom_sbox) if custom_sbox else None
         analysis_time = (time.time() - analysis_start) * 1000
         
         return ComparisonResponse(
             k44_sbox=k44_sbox,
             aes_sbox=aes_sbox,
+            custom_sbox=custom_sbox,
             k44_analysis=k44_analysis,
             aes_analysis=aes_analysis,
+            custom_analysis=custom_analysis,
             generation_time_ms=round(generation_time, 2),
             analysis_time_ms=round(analysis_time, 2)
         )
     
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -269,6 +340,165 @@ def get_matrix_info():
             "description": "AES affine transformation constant"
         }
     }
+
+
+def _prepare_key(key_str: str) -> bytes:
+    """
+    Prepare encryption key from string
+    Key will be padded or truncated to exactly 16 bytes
+    """
+    key_bytes = key_str.encode('utf-8')
+    
+    if len(key_bytes) < 16:
+        # Pad with zeros
+        key_bytes = key_bytes + b'\x00' * (16 - len(key_bytes))
+    elif len(key_bytes) > 16:
+        # Truncate to 16 bytes
+        key_bytes = key_bytes[:16]
+    
+    return key_bytes
+
+
+@app.post("/encrypt", response_model=EncryptResponse)
+def encrypt(request: EncryptRequest):
+    """
+    Encrypt plaintext using AES-128 with K44, AES, or custom S-box
+    
+    Args:
+        plaintext: Text to encrypt
+        key: Encryption key (will be padded/truncated to 16 bytes)
+        sbox_type: "k44" for K44 S-box, "aes" for standard AES S-box, "custom" for custom S-box
+        custom_sbox: Custom S-box (256 values) - required if sbox_type is "custom"
+    
+    Returns:
+        Base64 encoded ciphertext (IV + encrypted data)
+    """
+    try:
+        if request.sbox_type.lower() not in ['k44', 'aes', 'custom']:
+            raise HTTPException(
+                status_code=400,
+                detail="sbox_type must be 'k44', 'aes', or 'custom'"
+            )
+        
+        if request.sbox_type.lower() == 'custom':
+            if request.custom_sbox is None:
+                raise HTTPException(
+                    status_code=400,
+                    detail="custom_sbox is required when sbox_type is 'custom'"
+                )
+            if len(request.custom_sbox) != 256:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Custom S-box must contain exactly 256 values"
+                )
+        
+        start_time = time.time()
+        
+        # Prepare key
+        key = _prepare_key(request.key)
+        
+        # Prepare plaintext
+        plaintext_bytes = request.plaintext.encode('utf-8')
+        
+        # Create cipher with specified S-box
+        cipher = create_cipher(
+            request.sbox_type.lower(),
+            request.custom_sbox if request.sbox_type.lower() == 'custom' else None
+        )
+        
+        # Encrypt
+        ciphertext_bytes = cipher.encrypt(plaintext_bytes, key)
+        
+        # Encode to base64 for safe transmission
+        ciphertext_b64 = base64.b64encode(ciphertext_bytes).decode('utf-8')
+        
+        encryption_time = (time.time() - start_time) * 1000
+        
+        return EncryptResponse(
+            ciphertext=ciphertext_b64,
+            sbox_type=request.sbox_type.lower(),
+            encryption_time_ms=round(encryption_time, 2)
+        )
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/decrypt", response_model=DecryptResponse)
+def decrypt(request: DecryptRequest):
+    """
+    Decrypt ciphertext using AES-128 with K44, AES, or custom S-box
+    
+    Args:
+        ciphertext: Base64 encoded ciphertext (IV + encrypted data)
+        key: Decryption key (must match encryption key)
+        sbox_type: "k44" for K44 S-box, "aes" for standard AES S-box, "custom" for custom S-box
+        custom_sbox: Custom S-box (256 values) - required if sbox_type is "custom"
+    
+    Returns:
+        Decrypted plaintext
+    """
+    try:
+        if request.sbox_type.lower() not in ['k44', 'aes', 'custom']:
+            raise HTTPException(
+                status_code=400,
+                detail="sbox_type must be 'k44', 'aes', or 'custom'"
+            )
+        
+        if request.sbox_type.lower() == 'custom':
+            if request.custom_sbox is None:
+                raise HTTPException(
+                    status_code=400,
+                    detail="custom_sbox is required when sbox_type is 'custom'"
+                )
+            if len(request.custom_sbox) != 256:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Custom S-box must contain exactly 256 values"
+                )
+        
+        start_time = time.time()
+        
+        # Prepare key
+        key = _prepare_key(request.key)
+        
+        # Decode base64 ciphertext
+        try:
+            ciphertext_bytes = base64.b64decode(request.ciphertext)
+        except Exception:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid base64 ciphertext"
+            )
+        
+        # Create cipher with specified S-box
+        cipher = create_cipher(
+            request.sbox_type.lower(),
+            request.custom_sbox if request.sbox_type.lower() == 'custom' else None
+        )
+        
+        # Decrypt
+        plaintext_bytes = cipher.decrypt(ciphertext_bytes, key)
+        
+        # Decode to string
+        plaintext = plaintext_bytes.decode('utf-8')
+        
+        decryption_time = (time.time() - start_time) * 1000
+        
+        return DecryptResponse(
+            plaintext=plaintext,
+            sbox_type=request.sbox_type.lower(),
+            decryption_time_ms=round(decryption_time, 2)
+        )
+    
+    except HTTPException:
+        raise
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":

@@ -60,8 +60,10 @@ export interface AnalysisResults {
 export interface ComparisonData {
   k44_sbox: number[];
   aes_sbox: number[];
+  custom_sbox?: number[] | null;
   k44_analysis: Omit<AnalysisResults, 'sbox_name' | 'analysis_time_ms'>;
   aes_analysis: Omit<AnalysisResults, 'sbox_name' | 'analysis_time_ms'>;
+  custom_analysis?: Omit<AnalysisResults, 'sbox_name' | 'analysis_time_ms'> | null;
   generation_time_ms: number;
   analysis_time_ms: number;
 }
@@ -70,7 +72,34 @@ export interface MetricComparison {
   name: string;
   k44: number;
   aes: number;
+  custom?: number;
   target?: number | string;
   unit?: string;
+}
+
+export interface EncryptRequest {
+  plaintext: string;
+  key: string;
+  sbox_type: 'k44' | 'aes' | 'custom';
+  custom_sbox?: number[];
+}
+
+export interface EncryptResponse {
+  ciphertext: string; // Base64 encoded
+  sbox_type: string;
+  encryption_time_ms: number;
+}
+
+export interface DecryptRequest {
+  ciphertext: string; // Base64 encoded
+  key: string;
+  sbox_type: 'k44' | 'aes' | 'custom';
+  custom_sbox?: number[];
+}
+
+export interface DecryptResponse {
+  plaintext: string;
+  sbox_type: string;
+  decryption_time_ms: number;
 }
 
