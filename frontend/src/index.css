@@ -1,0 +1,137 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Merriweather', serif;
+  line-height: 1.6;
+  font-weight: 400;
+
+  color-scheme: dark;
+  color: #A8A7A7;
+  background-color: #363636;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #363636;
+  font-family: 'Merriweather', serif;
+  color: #A8A7A7;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  background: #363636;
+}
+
+h1, h2 {
+  font-family: 'Merriweather', serif;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+h3, h4, h5, h6 {
+  font-family: 'Merriweather', serif;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+@layer utilities {
+  .font-ui {
+    font-family: 'Lato', sans-serif;
+    font-weight: 700;
+  }
+  
+  .gradient-border {
+    position: relative;
+    border: 2px solid transparent;
+    background: linear-gradient(#474747, #474747) padding-box,
+                linear-gradient(135deg, #E8175D, #CC527A) border-box;
+  }
+  
+  .glass-effect {
+    background: #474747;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(168, 167, 167, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  }
+
+  .glass-dark {
+    background: #474747;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(168, 167, 167, 0.1);
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, #E8175D 0%, #CC527A 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, #E8175D 0%, #CC527A 100%);
+  }
+
+  .bg-gradient-subtle {
+    background: linear-gradient(135deg, #CC527A 0%, #A8A7A7 100%);
+  }
+
+  .bg-overlay-dark {
+    background: linear-gradient(135deg, rgba(54, 54, 54, 0.95) 0%, rgba(71, 71, 71, 0.90) 100%);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #363636;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #474747;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #CC527A;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+/* Selection color */
+::selection {
+  background-color: #E8175D;
+  color: #FFFFFF;
+}
+
+::-moz-selection {
+  background-color: #E8175D;
+  color: #FFFFFF;
+}
+
