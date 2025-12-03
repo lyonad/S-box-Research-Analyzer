@@ -54,7 +54,7 @@ const EncryptionPanel: React.FC<EncryptionPanelProps> = ({
         plaintext,
         key,
         sbox_type: sboxType,
-        custom_sbox: sboxType === 'custom' ? customSBox : undefined,
+        custom_sbox: sboxType === 'custom' ? (customSBox ?? undefined) : undefined,
       });
 
       setCiphertext(response.ciphertext);
@@ -94,7 +94,7 @@ const EncryptionPanel: React.FC<EncryptionPanelProps> = ({
         ciphertext,
         key,
         sbox_type: sboxType,
-        custom_sbox: sboxType === 'custom' ? customSBox : undefined,
+        custom_sbox: sboxType === 'custom' ? (customSBox ?? undefined) : undefined,
       });
 
       setPlaintext(response.plaintext);
@@ -124,19 +124,19 @@ const EncryptionPanel: React.FC<EncryptionPanelProps> = ({
   };
 
   return (
-    <div className={`glass-effect rounded-2xl p-8 border border-primary-light/10 ${className}`}>
-      <div className="mb-6">
-        <h2 className="font-heading text-2xl md:text-3xl font-bold text-white mb-3">
+    <div className={`glass-effect rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border border-text-primary/10 ${className}`}>
+      <div className="mb-4 sm:mb-6">
+        <h2 className="font-subheading text-xl sm:text-2xl md:text-3xl text-white mb-2 sm:mb-3">
           Encryption & Decryption
         </h2>
-        <p className="font-body text-primary-light text-base">
+        <p className="font-body text-text-primary text-sm sm:text-base">
           Encrypt and decrypt messages using AES-128 with K44, AES, or custom S-box
         </p>
       </div>
 
       {/* Mode Selection */}
-      <div className="mb-6">
-        <div className="flex gap-4 mb-4">
+      <div className="mb-4 sm:mb-6">
+        <div className="flex gap-2 sm:gap-4 mb-3 sm:mb-4">
           <button
             onClick={() => {
               setMode('encrypt');
@@ -144,11 +144,11 @@ const EncryptionPanel: React.FC<EncryptionPanelProps> = ({
               setResult(null);
             }}
             className={`
-              flex-1 px-6 py-3 rounded-xl font-body font-semibold transition-all
+              flex-1 px-4 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl font-body font-semibold transition-all text-sm sm:text-base
               ${
                 mode === 'encrypt'
-                  ? 'bg-accent-pink text-white shadow-lg'
-                  : 'bg-primary-light/10 text-primary-light hover:bg-primary-light/20'
+                  ? 'bg-white text-black hover:bg-dark-grey hover:text-white shadow-lg'
+                  : 'bg-surface-dark/50 text-text-primary hover:bg-white/20 hover:brightness-110 border border-text-primary/20 hover:border-white/40 transition-all'
               }
             `}
           >
@@ -161,11 +161,11 @@ const EncryptionPanel: React.FC<EncryptionPanelProps> = ({
               setResult(null);
             }}
             className={`
-              flex-1 px-6 py-3 rounded-xl font-body font-semibold transition-all
+              flex-1 px-4 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl font-body font-semibold transition-all text-sm sm:text-base
               ${
                 mode === 'decrypt'
-                  ? 'bg-accent-pink text-white shadow-lg'
-                  : 'bg-primary-light/10 text-primary-light hover:bg-primary-light/20'
+                  ? 'bg-white text-black hover:bg-dark-grey hover:text-white shadow-lg'
+                  : 'bg-surface-dark/50 text-text-primary hover:bg-white/20 hover:brightness-110 border border-text-primary/20 hover:border-white/40 transition-all'
               }
             `}
           >
@@ -174,15 +174,15 @@ const EncryptionPanel: React.FC<EncryptionPanelProps> = ({
         </div>
 
         {/* S-box Type Selection */}
-        <div className="flex gap-4 flex-wrap">
+        <div className="flex gap-2 sm:gap-4 flex-wrap">
           <button
             onClick={() => setSboxType('k44')}
             className={`
-              flex-1 min-w-[120px] px-4 py-2 rounded-lg font-body font-medium transition-all text-sm
+              flex-1 min-w-[80px] sm:min-w-[120px] px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg font-body font-medium transition-all text-xs sm:text-sm
               ${
                 sboxType === 'k44'
-                  ? 'bg-blue-500/20 text-blue-400 border-2 border-blue-500/50'
-                  : 'bg-primary-light/5 text-primary-light border-2 border-primary-light/10 hover:border-primary-light/20'
+                  ? 'bg-white/20 text-white border-2 border-white/50'
+                  : 'bg-surface-dark/50 text-text-primary border-2 border-text-primary/20 hover:border-white/40 hover:bg-white/20 hover:brightness-110 transition-all'
               }
             `}
           >
@@ -191,11 +191,11 @@ const EncryptionPanel: React.FC<EncryptionPanelProps> = ({
           <button
             onClick={() => setSboxType('aes')}
             className={`
-              flex-1 min-w-[120px] px-4 py-2 rounded-lg font-body font-medium transition-all text-sm
+              flex-1 min-w-[80px] sm:min-w-[120px] px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg font-body font-medium transition-all text-xs sm:text-sm
               ${
                 sboxType === 'aes'
-                  ? 'bg-purple-500/20 text-purple-400 border-2 border-purple-500/50'
-                  : 'bg-primary-light/5 text-primary-light border-2 border-primary-light/10 hover:border-primary-light/20'
+                  ? 'bg-light-grey/20 text-light-grey border-2 border-light-grey/50'
+                  : 'bg-surface-dark/50 text-text-primary border-2 border-text-primary/20 hover:border-white/40 hover:bg-white/20 hover:brightness-110 transition-all'
               }
             `}
           >
@@ -206,23 +206,23 @@ const EncryptionPanel: React.FC<EncryptionPanelProps> = ({
               onClick={() => setSboxType('custom')}
               disabled={!customSBox}
               className={`
-                flex-1 min-w-[120px] px-4 py-2 rounded-lg font-body font-medium transition-all text-sm
+                flex-1 min-w-[80px] sm:min-w-[120px] px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg font-body font-medium transition-all text-xs sm:text-sm
                 ${
                   sboxType === 'custom'
-                    ? 'bg-pink-500/20 text-pink-400 border-2 border-pink-500/50'
-                    : 'bg-primary-light/5 text-primary-light border-2 border-primary-light/10 hover:border-primary-light/20'
+                    ? 'bg-white/20 text-white border-2 border-white/50'
+                    : 'bg-surface-dark/50 text-text-primary border-2 border-text-primary/20 hover:border-white/40 hover:bg-white/20 hover:brightness-110 transition-all'
                 }
                 ${!customSBox ? 'opacity-50 cursor-not-allowed' : ''}
               `}
               title={customSBox ? `Use ${customSBoxName} S-box` : 'No custom S-box available'}
             >
-              {customSBoxName} S-box
+              {customSBoxName}
             </button>
           )}
         </div>
         {customSBox && sboxType === 'custom' && (
-          <div className="mt-2 p-2 bg-pink-500/10 border border-pink-500/30 rounded-lg">
-            <p className="text-xs text-pink-400 font-body">
+          <div className="mt-2 p-2 bg-white/10 border border-white/30 rounded-lg">
+            <p className="text-xs text-white font-body">
               Using custom S-box: {customSBoxName}
             </p>
           </div>
@@ -230,10 +230,10 @@ const EncryptionPanel: React.FC<EncryptionPanelProps> = ({
       </div>
 
       {/* Input Fields */}
-      <div className="space-y-4 mb-6">
+      <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
         {/* Plaintext (for encryption) or Ciphertext (for decryption) */}
         <div>
-          <label className="block font-body text-sm font-semibold text-primary-light mb-2">
+          <label className="block font-body text-xs sm:text-sm font-semibold text-text-primary mb-1.5 sm:mb-2">
             {mode === 'encrypt' ? 'Plaintext' : 'Ciphertext (Base64)'}
           </label>
           <div className="relative">
@@ -248,13 +248,13 @@ const EncryptionPanel: React.FC<EncryptionPanelProps> = ({
                 setError(null);
               }}
               placeholder={mode === 'encrypt' ? 'Enter text to encrypt...' : 'Enter base64 ciphertext...'}
-              className="w-full px-4 py-3 bg-primary-dark/50 border border-primary-light/20 rounded-xl text-white font-mono text-sm focus:outline-none focus:border-accent-pink/50 focus:ring-2 focus:ring-accent-pink/20 resize-none"
-              rows={4}
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-surface-dark border border-text-primary/30 rounded-lg sm:rounded-xl text-white font-mono text-xs sm:text-sm focus:outline-none focus:border-white focus:ring-2 focus:ring-white/30 resize-none"
+              rows={3}
             />
             {(mode === 'encrypt' ? plaintext : ciphertext) && (
               <button
                 onClick={() => handleCopy(mode === 'encrypt' ? plaintext : ciphertext)}
-                className="absolute top-2 right-2 px-3 py-1 bg-primary-light/10 hover:bg-primary-light/20 text-primary-light rounded-lg text-xs font-body transition-all"
+                className="absolute top-1.5 sm:top-2 right-1.5 sm:right-2 px-2 sm:px-3 py-0.5 sm:py-1 bg-surface-dark hover:bg-white/20 hover:border-white/40 hover:brightness-110 border border-text-primary/20 text-text-primary rounded-lg text-[10px] sm:text-xs font-body transition-all"
               >
                 Copy
               </button>
@@ -264,7 +264,7 @@ const EncryptionPanel: React.FC<EncryptionPanelProps> = ({
 
         {/* Key */}
         <div>
-          <label className="block font-body text-sm font-semibold text-primary-light mb-2">
+          <label className="block font-body text-xs sm:text-sm font-semibold text-text-primary mb-1.5 sm:mb-2">
             Key (will be padded/truncated to 16 bytes)
           </label>
           <input
@@ -275,14 +275,14 @@ const EncryptionPanel: React.FC<EncryptionPanelProps> = ({
               setError(null);
             }}
             placeholder="Enter encryption key..."
-            className="w-full px-4 py-3 bg-primary-dark/50 border border-primary-light/20 rounded-xl text-white font-mono text-sm focus:outline-none focus:border-accent-pink/50 focus:ring-2 focus:ring-accent-pink/20"
+            className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-surface-dark border border-text-primary/30 rounded-lg sm:rounded-xl text-white font-mono text-xs sm:text-sm focus:outline-none focus:border-white focus:ring-2 focus:ring-white/30"
           />
-          <p className="mt-1 text-xs text-primary-light/70 font-body">
+          <p className="mt-1 text-[10px] sm:text-xs text-text-primary/70 font-body">
             Key will be automatically adjusted to 16 bytes
           </p>
           {sboxType === 'custom' && !customSBox && (
-            <p className="mt-1 text-xs text-red-400 font-body">
-              Warning: Custom S-box is required but not available. Please generate a custom S-box first.
+            <p className="mt-1 text-[10px] sm:text-xs text-accent-warning font-body">
+              Warning: Custom S-box is required but not available.
             </p>
           )}
         </div>
@@ -290,19 +290,19 @@ const EncryptionPanel: React.FC<EncryptionPanelProps> = ({
 
       {/* Error Display */}
       {error && (
-        <div className="mb-4 p-4 bg-red-500/20 border border-red-500/50 rounded-xl">
-          <p className="text-red-400 font-body text-sm">{error}</p>
+        <div className="mb-4 p-4 bg-accent-warning/20 border border-accent-warning/50 rounded-xl">
+          <p className="text-accent-warning font-body text-sm">{error}</p>
         </div>
       )}
 
       {/* Result Display */}
       {result && (
-        <div className="mb-4 p-4 bg-green-500/20 border border-green-500/50 rounded-xl">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-green-400 font-body text-sm font-semibold">
+          <div className="mb-4 p-4 bg-white/10 border border-white/30 rounded-xl">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-white font-body text-sm font-semibold">
               {mode === 'encrypt' ? 'Encrypted' : 'Decrypted'} successfully!
             </p>
-            <span className="text-xs text-primary-light font-body">
+            <span className="text-xs text-text-primary font-body">
               {result.time.toFixed(2)} ms
             </span>
           </div>
@@ -310,54 +310,54 @@ const EncryptionPanel: React.FC<EncryptionPanelProps> = ({
             <textarea
               value={result.text}
               readOnly
-              className="w-full px-4 py-3 bg-primary-dark/50 border border-green-500/30 rounded-xl text-white font-mono text-sm resize-none"
+                className="w-full px-4 py-3 bg-surface-dark border border-white/30 rounded-xl text-white font-mono text-sm resize-none"
               rows={mode === 'encrypt' ? 3 : 4}
             />
             <button
               onClick={() => handleCopy(result.text)}
-              className="absolute top-2 right-2 px-3 py-1 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-lg text-xs font-body transition-all"
+                className="absolute top-2 right-2 px-3 py-1 bg-white/20 hover:bg-white/30 text-white rounded-lg text-xs font-body transition-all"
             >
               Copy
             </button>
           </div>
-          <p className="mt-2 text-xs text-primary-light/70 font-body">
+          <p className="mt-2 text-xs text-text-primary/70 font-body">
             Using {result.sboxType.toUpperCase()} S-box
           </p>
         </div>
       )}
 
       {/* Action Buttons */}
-      <div className="flex gap-4">
+      <div className="flex gap-2 sm:gap-4">
         <button
           onClick={mode === 'encrypt' ? handleEncrypt : handleDecrypt}
           disabled={loading}
-          className={`
-            flex-1 px-6 py-4 rounded-xl font-body font-bold text-white text-lg
+            className={`
+            flex-1 px-4 sm:px-6 py-3 sm:py-4 rounded-lg sm:rounded-xl font-body font-bold text-sm sm:text-base md:text-lg
             transition-all duration-300 transform shadow-lg
             ${
               loading
-                ? 'bg-primary-light/20 cursor-not-allowed'
-                : 'bg-accent-pink hover:bg-accent-muted hover:shadow-2xl hover:scale-105'
+                ? 'bg-surface-dark text-text-primary/50 cursor-not-allowed border border-text-primary/30 opacity-60'
+                : 'bg-white text-black hover:bg-dark-grey hover:text-white hover:shadow-2xl hover:brightness-95'
             }
           `}
         >
           {loading ? (
-            <span className="flex items-center justify-center gap-3">
+            <span className="flex items-center justify-center gap-2 sm:gap-3">
               <LoadingSpinner size="sm" />
               Processing...
             </span>
           ) : (
-            <span className="flex items-center justify-center gap-2">
+            <span className="flex items-center justify-center gap-1.5 sm:gap-2">
               {mode === 'encrypt' ? (
                 <>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                   Encrypt
                 </>
               ) : (
                 <>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
                   </svg>
                   Decrypt
@@ -368,18 +368,17 @@ const EncryptionPanel: React.FC<EncryptionPanelProps> = ({
         </button>
         <button
           onClick={handleClear}
-          className="px-6 py-4 bg-primary-light/10 hover:bg-primary-light/20 text-primary-light rounded-xl font-body font-semibold transition-all"
+          className="px-4 sm:px-6 py-3 sm:py-4 bg-surface-dark hover:bg-white/20 hover:border-white/40 hover:brightness-110 border border-text-primary/20 text-text-primary rounded-lg sm:rounded-xl font-body font-semibold transition-all text-sm sm:text-base"
         >
           Clear
         </button>
       </div>
 
       {/* Info */}
-      <div className="mt-6 p-4 bg-primary-light/5 rounded-xl border border-primary-light/10">
-        <p className="text-xs text-primary-light/70 font-body leading-relaxed">
-          <strong className="text-primary-light">Note:</strong> This implementation uses AES-128 in CBC mode with PKCS7 padding. 
-          The key will be automatically padded or truncated to 16 bytes. 
-          For decryption, use the same key and S-box type used for encryption.
+      <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-surface-dark/50 rounded-lg sm:rounded-xl border border-text-primary/20">
+        <p className="text-[10px] sm:text-xs text-text-primary/70 font-body leading-relaxed">
+          <strong className="text-text-primary">Note:</strong> This implementation uses AES-128 in CBC mode with PKCS7 padding. 
+          The key will be automatically padded or truncated to 16 bytes.
         </p>
       </div>
     </div>

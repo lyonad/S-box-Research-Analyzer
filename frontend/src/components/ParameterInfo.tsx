@@ -25,8 +25,8 @@ const ParameterInfo: React.FC<ParameterInfoProps> = ({
     constant === (defaultConstant || 0x63);
 
   return (
-    <div className="glass-effect rounded-xl p-6 mb-6 border border-primary-light/10">
-      <h3 className="font-heading text-xl font-bold text-white mb-4">
+    <div className="glass-effect rounded-xl p-6 mb-6 border border-text-primary/10">
+      <h3 className="font-subheading text-xl text-white mb-4">
         S-box Parameters
       </h3>
       
@@ -34,17 +34,17 @@ const ParameterInfo: React.FC<ParameterInfoProps> = ({
         {/* Matrix Info */}
         <div className="space-y-3">
           <div>
-            <label className="font-body text-sm font-semibold text-primary-light block mb-2">
+            <label className="font-body text-sm font-semibold text-text-primary block mb-2">
               Affine Transformation Matrix
             </label>
-            <div className="bg-neutral-dark/50 rounded-lg p-4 border border-primary-light/10">
+            <div className="bg-surface-dark/50 rounded-lg p-4 border border-text-primary/20">
               <p className="font-body font-bold text-white mb-2">{matrixName}</p>
-              <div className="font-mono text-xs text-primary-light space-y-1 max-h-40 overflow-y-auto">
+              <div className="font-mono text-xs text-text-primary space-y-1 max-h-40 overflow-y-auto">
                 {matrix.map((row, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    <span className="w-12 text-primary-light/70">Row {i}:</span>
+                    <span className="w-12 text-text-primary/70">Row {i}:</span>
                     <span className="text-white">{row.toString(2).padStart(8, '0')}</span>
-                    <span className="text-accent-muted">(0x{row.toString(16).toUpperCase().padStart(2, '0')})</span>
+                    <span className="text-light-grey">(0x{row.toString(16).toUpperCase().padStart(2, '0')})</span>
                   </div>
                 ))}
               </div>
@@ -55,20 +55,20 @@ const ParameterInfo: React.FC<ParameterInfoProps> = ({
         {/* Constant Info */}
         <div className="space-y-3">
           <div>
-            <label className="font-body text-sm font-semibold text-primary-light block mb-2">
+            <label className="font-body text-sm font-semibold text-text-primary block mb-2">
               Constant Vector (C)
             </label>
-            <div className="bg-neutral-dark/50 rounded-lg p-4 border border-primary-light/10">
+            <div className="bg-surface-dark/50 rounded-lg p-4 border border-text-primary/20">
               <div className="flex items-center gap-3 mb-2">
-                <span className="font-mono text-2xl font-bold text-accent-pink">
+                <span className="font-mono text-2xl font-bold text-white">
                   0x{constant.toString(16).toUpperCase().padStart(2, '0')}
                 </span>
-                <span className="font-body text-primary-light">
+                <span className="font-body text-text-primary">
                   ({constant} decimal)
                 </span>
               </div>
               {defaultConstant && constant !== defaultConstant && (
-                <p className="font-body text-xs text-accent-muted mt-2">
+                <p className="font-body text-xs text-light-grey mt-2">
                   Different from default (0x{defaultConstant.toString(16).toUpperCase()})
                 </p>
               )}
@@ -77,10 +77,10 @@ const ParameterInfo: React.FC<ParameterInfoProps> = ({
 
           {/* Formula */}
           <div>
-            <label className="font-body text-sm font-semibold text-primary-light block mb-2">
+            <label className="font-body text-sm font-semibold text-text-primary block mb-2">
               Generation Formula
             </label>
-            <div className="bg-neutral-dark/50 rounded-lg p-4 border border-primary-light/10">
+            <div className="bg-surface-dark/50 rounded-lg p-4 border border-text-primary/20">
               <p className="font-mono text-sm text-white">
                 S(x) = Matrix × x^(-1) ⊕ 0x{constant.toString(16).toUpperCase()}
               </p>
@@ -91,16 +91,16 @@ const ParameterInfo: React.FC<ParameterInfoProps> = ({
 
       {/* Status Indicator */}
       {isDefault && (
-        <div className="mt-4 p-3 bg-accent-pink/20 border border-accent-pink/40 rounded-lg">
-          <p className="font-body text-sm text-accent-pink text-center">
+        <div className="mt-4 p-3 bg-white/10 border border-white/30 rounded-lg">
+          <p className="font-body text-sm text-white text-center">
             Using default parameters (K44 Matrix - Best Performer, C=0x63)
           </p>
         </div>
       )}
       
       {!isDefault && (
-        <div className="mt-4 p-3 bg-primary-light/10 border border-primary-light/20 rounded-lg">
-          <p className="font-body text-sm text-primary-light text-center">
+        <div className="mt-4 p-3 bg-surface-dark/50 border border-text-primary/30 rounded-lg">
+          <p className="font-body text-sm text-text-primary text-center">
             Custom parameters active - Different from defaults
           </p>
         </div>

@@ -14,7 +14,7 @@ interface SBoxGridProps {
 const SBoxGrid: React.FC<SBoxGridProps> = ({ 
   sbox, 
   title,
-  highlightColor = 'bg-blue-500'
+  highlightColor = 'bg-white'
 }) => {
   const [hoveredCell, setHoveredCell] = useState<number | null>(null);
   const [selectedCell, setSelectedCell] = useState<number | null>(null);
@@ -24,15 +24,15 @@ const SBoxGrid: React.FC<SBoxGridProps> = ({
 
   return (
     <div className="w-full">
-      <h3 className="font-heading text-2xl font-bold mb-6 text-white">{title}</h3>
+      <h3 className="font-subheading text-2xl mb-6 text-white">{title}</h3>
       
       <div className="overflow-x-auto">
         <div className="inline-block min-w-full">
           {/* Grid container */}
-          <div className="glass-effect rounded-xl p-6 border border-primary-light/10">
+          <div className="glass-effect rounded-xl p-6 border border-text-primary/20">
             <div className="grid gap-0" style={{ gridTemplateColumns: 'auto repeat(16, minmax(0, 1fr))' }}>
               {/* Top-left corner cell */}
-              <div className="p-2 text-center font-mono text-xs font-bold text-primary-light">
+              <div className="p-2 text-center font-mono text-xs font-bold text-text-primary">
                 x
               </div>
               
@@ -40,7 +40,7 @@ const SBoxGrid: React.FC<SBoxGridProps> = ({
               {[...Array(16)].map((_, col) => (
                 <div 
                   key={`col-${col}`}
-                  className="p-2 text-center font-mono text-xs font-bold text-accent-pink"
+                  className="p-2 text-center font-mono text-xs font-bold text-white"
                 >
                   {getColHeader(col)}
                 </div>
@@ -50,7 +50,7 @@ const SBoxGrid: React.FC<SBoxGridProps> = ({
               {[...Array(16)].map((_, row) => (
                 <React.Fragment key={`row-${row}`}>
                   {/* Row header */}
-                  <div className="p-2 text-center font-mono text-xs font-bold text-accent-pink">
+                    <div className="p-2 text-center font-mono text-xs font-bold text-white">
                     {getRowHeader(row)}
                   </div>
                   
@@ -65,13 +65,13 @@ const SBoxGrid: React.FC<SBoxGridProps> = ({
                       <div
                         key={`cell-${index}`}
                         className={`
-                          p-2 text-center font-mono text-sm font-semibold
-                          border border-primary-light/10
+                          p-1 flex items-center justify-center text-center font-mono text-xs font-semibold
+                          border border-text-primary/20
                           cursor-pointer
                           transition-all duration-150
-                          ${isSelected ? `${highlightColor} text-white shadow-lg scale-105 border-accent-pink` : ''}
-                          ${isHovered && !isSelected ? 'bg-accent-muted/20 scale-105 border-accent-muted/50' : ''}
-                          ${!isHovered && !isSelected ? 'bg-neutral-dark text-primary-light hover:bg-primary-light/10' : ''}
+                          ${isSelected ? `${highlightColor} text-black shadow-lg scale-105 border-white` : ''}
+                          ${isHovered && !isSelected ? 'bg-white/20 scale-105 border-white/50' : ''}
+                          ${!isHovered && !isSelected ? 'bg-surface-dark text-text-primary hover:bg-white/35 hover:border-white/80 hover:brightness-125 transition-all' : ''}
                         `}
                         onMouseEnter={() => setHoveredCell(index)}
                         onMouseLeave={() => setHoveredCell(null)}
@@ -90,7 +90,7 @@ const SBoxGrid: React.FC<SBoxGridProps> = ({
           {/* Cell info display - Always reserve space to prevent layout shift */}
           <div className="mt-6 min-h-[220px]">
             {(hoveredCell !== null || selectedCell !== null) && (
-              <div className="glass-effect rounded-xl p-6 border border-primary-light/10 animate-fade-in">
+              <div className="glass-effect rounded-xl p-6 border border-text-primary/10 animate-fade-in">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                   {(() => {
                     const index = selectedCell !== null ? selectedCell : hoveredCell;
@@ -103,32 +103,32 @@ const SBoxGrid: React.FC<SBoxGridProps> = ({
                     return (
                       <>
                         <div>
-                          <span className="font-body text-sm text-primary-light">Position:</span>
-                          <div className="mt-1 font-mono font-bold text-accent-pink text-lg">
+                          <span className="font-body text-sm text-text-primary">Position:</span>
+                            <div className="mt-1 font-mono font-bold text-white text-lg">
                             [{getRowHeader(row)}{getColHeader(col)}]
                           </div>
                         </div>
                         <div>
-                          <span className="font-body text-sm text-primary-light">Index:</span>
-                          <div className="mt-1 font-mono font-bold text-primary-light text-lg">
+                          <span className="font-body text-sm text-text-primary">Index:</span>
+                          <div className="mt-1 font-mono font-bold text-text-primary text-lg">
                             {index}
                           </div>
                         </div>
                         <div>
-                          <span className="font-body text-sm text-primary-light">Hex:</span>
-                          <div className="mt-1 font-mono font-bold text-accent-muted text-lg">
+                          <span className="font-body text-sm text-text-primary">Hex:</span>
+                          <div className="mt-1 font-mono font-bold text-light-grey text-lg">
                             0x{value.toString(16).toUpperCase().padStart(2, '0')}
                           </div>
                         </div>
                         <div>
-                          <span className="font-body text-sm text-primary-light">Decimal:</span>
-                          <div className="mt-1 font-mono font-bold text-primary-light text-lg">
+                          <span className="font-body text-sm text-text-primary">Decimal:</span>
+                          <div className="mt-1 font-mono font-bold text-text-primary text-lg">
                             {value}
                           </div>
                         </div>
                         <div className="col-span-2 md:col-span-4">
-                          <span className="font-body text-sm text-primary-light">Binary:</span>
-                          <div className="mt-1 font-mono font-bold text-accent-pink text-lg">
+                          <span className="font-body text-sm text-text-primary">Binary:</span>
+                            <div className="mt-1 font-mono font-bold text-white text-lg">
                             {value.toString(2).padStart(8, '0')}
                           </div>
                         </div>

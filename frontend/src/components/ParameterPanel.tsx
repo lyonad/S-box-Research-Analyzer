@@ -21,9 +21,7 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
   onParametersChange,
   defaultMatrix,
   defaultConstant,
-  autoGenerate = false,
 }) => {
-  const [useCustom, setUseCustom] = useState(false);
   const [matrixCategory, setMatrixCategory] = useState<'paper' | 'standard' | 'variations' | 'custom'>('paper');
   const [selectedMatrix, setSelectedMatrix] = useState<string>('k44');
   const [customMatrix, setCustomMatrix] = useState<string[]>(defaultMatrix.map(m => m.toString(2).padStart(8, '0')));
@@ -215,21 +213,21 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
   };
 
   return (
-    <div className="glass-effect rounded-2xl p-6 mb-8 border border-primary-light/10">
-      <div className="flex items-center justify-between mb-6">
+    <div className="glass-effect rounded-xl sm:rounded-2xl p-4 sm:p-6 mb-6 sm:mb-8 border border-text-primary/10">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
         <div>
-          <h3 className="font-heading text-2xl font-bold text-white mb-2">
-            🔬 Research Parameters
+          <h3 className="font-subheading text-lg sm:text-xl md:text-2xl text-white mb-1 sm:mb-2">
+            Research Parameters
           </h3>
-          <p className="font-body text-sm text-primary-light">
-            Adjust S-box generation parameters for experimentation
+          <p className="font-body text-xs sm:text-sm text-text-primary">
+            Adjust S-box generation parameters
           </p>
         </div>
         <button
           onClick={resetToDefaults}
-          className="px-4 py-2 bg-primary-light/20 hover:bg-primary-light/30 text-primary-light rounded-lg font-body text-sm font-medium transition-colors"
+          className="px-3 sm:px-4 py-1.5 sm:py-2 bg-surface-dark hover:bg-white/20 hover:border-white/40 hover:brightness-110 border border-text-primary/20 text-text-primary rounded-lg font-body text-xs sm:text-sm font-medium transition-all self-start sm:self-auto"
         >
-          Reset to Defaults
+          Reset
         </button>
       </div>
 
@@ -241,43 +239,43 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
           </label>
           
           {/* Category Selection */}
-          <div className="grid grid-cols-4 gap-2 mb-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2 mb-3 sm:mb-4">
             <button
               onClick={() => handleCategoryChange('paper')}
-              className={`px-3 py-2 rounded-lg font-body text-xs font-semibold transition-all ${
+              className={`px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg font-body text-[10px] sm:text-xs font-semibold transition-all ${
                 matrixCategory === 'paper'
-                  ? 'bg-accent-pink text-white'
-                  : 'bg-primary-light/10 text-primary-light hover:bg-primary-light/20'
+                  ? 'bg-white text-black hover:bg-dark-grey hover:text-white'
+                  : 'bg-surface-dark/50 text-text-primary hover:bg-white/20 hover:border-white/40 hover:brightness-110 border border-text-primary/20 transition-all'
               }`}
             >
               Paper
             </button>
             <button
               onClick={() => handleCategoryChange('standard')}
-              className={`px-3 py-2 rounded-lg font-body text-xs font-semibold transition-all ${
+              className={`px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg font-body text-[10px] sm:text-xs font-semibold transition-all ${
                 matrixCategory === 'standard'
-                  ? 'bg-accent-pink text-white'
-                  : 'bg-primary-light/10 text-primary-light hover:bg-primary-light/20'
+                  ? 'bg-white text-black hover:bg-dark-grey hover:text-white'
+                  : 'bg-surface-dark/50 text-text-primary hover:bg-white/20 hover:border-white/40 hover:brightness-110 border border-text-primary/20 transition-all'
               }`}
             >
               Standard
             </button>
             <button
               onClick={() => handleCategoryChange('variations')}
-              className={`px-3 py-2 rounded-lg font-body text-xs font-semibold transition-all ${
+              className={`px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg font-body text-[10px] sm:text-xs font-semibold transition-all ${
                 matrixCategory === 'variations'
-                  ? 'bg-accent-pink text-white'
-                  : 'bg-primary-light/10 text-primary-light hover:bg-primary-light/20'
+                  ? 'bg-white text-black hover:bg-dark-grey hover:text-white'
+                  : 'bg-surface-dark/50 text-text-primary hover:bg-white/20 hover:border-white/40 hover:brightness-110 border border-text-primary/20 transition-all'
               }`}
             >
               Variations
             </button>
             <button
               onClick={() => handleCategoryChange('custom')}
-              className={`px-3 py-2 rounded-lg font-body text-xs font-semibold transition-all ${
+              className={`px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg font-body text-[10px] sm:text-xs font-semibold transition-all ${
                 matrixCategory === 'custom'
-                  ? 'bg-accent-pink text-white'
-                  : 'bg-primary-light/10 text-primary-light hover:bg-primary-light/20'
+                  ? 'bg-white text-black hover:bg-dark-grey hover:text-white'
+                  : 'bg-surface-dark/50 text-text-primary hover:bg-white/20 hover:border-white/40 hover:brightness-110 border border-text-primary/20 transition-all'
               }`}
             >
               Custom
@@ -286,57 +284,57 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
 
           {/* Matrix Selection within Category */}
           {matrixCategory === 'paper' && (
-            <div className="space-y-2 mb-4">
+            <div className="space-y-1.5 sm:space-y-2 mb-3 sm:mb-4">
               {Object.entries(PAPER_MATRICES).map(([key, matrix]) => (
                 <button
                   key={key}
                   onClick={() => handleMatrixSelect(key)}
-                  className={`w-full text-left px-4 py-3 rounded-lg border transition-all ${
+                  className={`w-full text-left px-3 sm:px-4 py-2 sm:py-3 rounded-lg border transition-all ${
                     selectedMatrix === key && matrixCategory === 'paper'
-                      ? 'bg-accent-pink/20 border-accent-pink text-white'
-                      : 'bg-neutral-dark/50 border-primary-light/20 text-primary-light hover:border-primary-light/40'
+                      ? 'bg-white/20 border-white text-white'
+                      : 'bg-surface-dark/50 border-text-primary/30 text-text-primary hover:border-white/40 hover:bg-white/20 hover:brightness-110 transition-all'
                   }`}
                 >
-                  <div className="font-body font-semibold text-sm">{matrix.name}</div>
-                  <div className="font-body text-xs text-primary-light/70 mt-1">{matrix.description}</div>
+                  <div className="font-body font-semibold text-xs sm:text-sm">{matrix.name}</div>
+                  <div className="font-body text-[10px] sm:text-xs text-text-primary/70 mt-0.5 sm:mt-1 truncate">{matrix.description}</div>
                 </button>
               ))}
             </div>
           )}
 
           {matrixCategory === 'standard' && (
-            <div className="space-y-2 mb-4">
+            <div className="space-y-1.5 sm:space-y-2 mb-3 sm:mb-4">
               {Object.entries(STANDARD_MATRICES).map(([key, matrix]) => (
                 <button
                   key={key}
                   onClick={() => handleMatrixSelect(key)}
-                  className={`w-full text-left px-4 py-3 rounded-lg border transition-all ${
+                  className={`w-full text-left px-3 sm:px-4 py-2 sm:py-3 rounded-lg border transition-all ${
                     selectedMatrix === key && matrixCategory === 'standard'
-                      ? 'bg-accent-pink/20 border-accent-pink text-white'
-                      : 'bg-neutral-dark/50 border-primary-light/20 text-primary-light hover:border-primary-light/40'
+                      ? 'bg-white/20 border-white text-white'
+                      : 'bg-surface-dark/50 border-text-primary/30 text-text-primary hover:border-white/40 hover:bg-white/20 hover:brightness-110 transition-all'
                   }`}
                 >
-                  <div className="font-body font-semibold text-sm">{matrix.name}</div>
-                  <div className="font-body text-xs text-primary-light/70 mt-1">{matrix.description}</div>
+                  <div className="font-body font-semibold text-xs sm:text-sm">{matrix.name}</div>
+                  <div className="font-body text-[10px] sm:text-xs text-text-primary/70 mt-0.5 sm:mt-1 truncate">{matrix.description}</div>
                 </button>
               ))}
             </div>
           )}
 
           {matrixCategory === 'variations' && (
-            <div className="space-y-2 mb-4">
+            <div className="space-y-1.5 sm:space-y-2 mb-3 sm:mb-4">
               {Object.entries(VARIATION_MATRICES).map(([key, matrix]) => (
                 <button
                   key={key}
                   onClick={() => handleMatrixSelect(key)}
-                  className={`w-full text-left px-4 py-3 rounded-lg border transition-all ${
+                  className={`w-full text-left px-3 sm:px-4 py-2 sm:py-3 rounded-lg border transition-all ${
                     selectedMatrix === key && matrixCategory === 'variations'
-                      ? 'bg-accent-pink/20 border-accent-pink text-white'
-                      : 'bg-neutral-dark/50 border-primary-light/20 text-primary-light hover:border-primary-light/40'
+                      ? 'bg-white/20 border-white text-white'
+                      : 'bg-surface-dark/50 border-text-primary/30 text-text-primary hover:border-white/40 hover:bg-white/20 hover:brightness-110 transition-all'
                   }`}
                 >
-                  <div className="font-body font-semibold text-sm">{matrix.name}</div>
-                  <div className="font-body text-xs text-primary-light/70 mt-1">{matrix.description}</div>
+                  <div className="font-body font-semibold text-xs sm:text-sm">{matrix.name}</div>
+                  <div className="font-body text-[10px] sm:text-xs text-text-primary/70 mt-0.5 sm:mt-1 truncate">{matrix.description}</div>
                 </button>
               ))}
             </div>
@@ -344,21 +342,21 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
 
           {/* Matrix Input (8 rows) */}
           {matrixCategory === 'custom' && (
-            <div className="space-y-2">
-              <p className="font-body text-xs text-primary-light mb-2">
-                Enter 8 rows as binary (8 bits) or hex (0xXX):
+            <div className="space-y-1.5 sm:space-y-2">
+              <p className="font-body text-[10px] sm:text-xs text-text-primary mb-1.5 sm:mb-2">
+                Enter 8 rows as binary or hex:
               </p>
               {customMatrix.map((row, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <span className="font-mono text-xs text-primary-light w-6">Row {index}:</span>
+                <div key={index} className="flex items-center gap-1.5 sm:gap-2">
+                  <span className="font-mono text-[10px] sm:text-xs text-text-primary w-5 sm:w-6 flex-shrink-0">R{index}:</span>
                   <input
                     type="text"
                     value={row}
                     onChange={(e) => handleMatrixRowChange(index, e.target.value)}
-                    className="flex-1 px-3 py-2 bg-neutral-dark border border-primary-light/20 rounded-lg font-mono text-sm text-white focus:border-accent-pink focus:outline-none"
-                    placeholder="01010111 or 0x57"
+                      className="flex-1 min-w-0 px-2 sm:px-3 py-1.5 sm:py-2 bg-surface-dark border border-text-primary/20 rounded-lg font-mono text-xs sm:text-sm text-white focus:border-white focus:outline-none"
+                    placeholder="01010111"
                   />
-                  <span className="font-mono text-xs text-primary-light w-16">
+                  <span className="font-mono text-[10px] sm:text-xs text-text-primary w-10 sm:w-16 flex-shrink-0 text-right">
                     {(() => {
                       try {
                         const trimmed = row.trim();
@@ -386,9 +384,9 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
 
           {/* Display current matrix */}
           {matrixCategory !== 'custom' && (
-            <div className="mt-4 p-4 bg-neutral-dark/50 rounded-lg border border-primary-light/10">
-              <div className="flex items-center justify-between mb-2">
-                <p className="font-body text-xs text-primary-light">
+            <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-surface-dark/50 rounded-lg border border-text-primary/20">
+              <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                <p className="font-body text-[10px] sm:text-xs text-text-primary">
                   Current Matrix:
                 </p>
                 <button
@@ -398,17 +396,17 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
                     setMatrixCategory('custom');
                     setSelectedMatrix('custom');
                   }}
-                  className="text-xs text-accent-pink hover:text-accent-muted font-body"
+                   className="text-[10px] sm:text-xs text-light-grey hover:text-white font-body"
                 >
-                  Edit as Custom
+                  Edit
                 </button>
               </div>
-              <div className="font-mono text-xs text-primary-light space-y-1 max-h-32 overflow-y-auto">
+              <div className="font-mono text-[10px] sm:text-xs text-text-primary space-y-0.5 sm:space-y-1 max-h-28 sm:max-h-32 overflow-y-auto">
                 {getCurrentMatrix().map((row, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <span className="w-12">Row {i}:</span>
-                    <span>{row.toString(2).padStart(8, '0')}</span>
-                    <span className="text-accent-muted">(0x{row.toString(16).toUpperCase().padStart(2, '0')})</span>
+                  <div key={i} className="flex items-center gap-1 sm:gap-2">
+                    <span className="w-8 sm:w-12">R{i}:</span>
+                    <span className="hidden sm:inline">{row.toString(2).padStart(8, '0')}</span>
+                      <span className="text-light-grey">(0x{row.toString(16).toUpperCase().padStart(2, '0')})</span>
                   </div>
                 ))}
               </div>
@@ -418,28 +416,28 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
 
         {/* Constant Input */}
         <div>
-          <label className="block font-body text-sm font-semibold text-white mb-3">
+          <label className="block font-body text-xs sm:text-sm font-semibold text-white mb-2 sm:mb-3">
             Constant Vector (C)
           </label>
           
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <div>
               <input
                 type="text"
                 value={constantInput}
                 onChange={(e) => handleConstantChange(e.target.value)}
-                className="w-full px-4 py-3 bg-neutral-dark border border-primary-light/20 rounded-lg font-mono text-lg text-white focus:border-accent-pink focus:outline-none"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-surface-dark border border-text-primary/20 rounded-lg font-mono text-base sm:text-lg text-white focus:border-white focus:outline-none"
                 placeholder="0x63 or 99"
               />
-              <p className="font-body text-xs text-primary-light mt-2">
-                Enter as hex (0x63) or decimal (99). Current: 0x{constant.toString(16).toUpperCase()} ({constant})
+              <p className="font-body text-[10px] sm:text-xs text-text-primary mt-1.5 sm:mt-2">
+                Hex/decimal. Current: 0x{constant.toString(16).toUpperCase()} ({constant})
               </p>
             </div>
 
             {/* Quick presets */}
             <div>
-              <p className="font-body text-xs text-primary-light mb-2">Quick Presets:</p>
-              <div className="flex flex-wrap gap-2">
+              <p className="font-body text-[10px] sm:text-xs text-text-primary mb-1.5 sm:mb-2">Quick Presets:</p>
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {[0x63, 0x00, 0xFF, 0xAA, 0x55].map((preset) => (
                   <button
                     key={preset}
@@ -449,10 +447,10 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
                       const currentMatrix = getCurrentMatrix();
                       applyParameters(currentMatrix, preset);
                     }}
-                    className={`px-3 py-1 rounded font-mono text-xs font-semibold transition-all ${
-                      constant === preset
-                        ? 'bg-accent-pink text-white'
-                        : 'bg-primary-light/10 text-primary-light hover:bg-primary-light/20'
+                    className={`px-2 sm:px-3 py-1 rounded font-mono text-[10px] sm:text-xs font-semibold transition-all ${
+                        constant === preset
+                         ? 'bg-white text-black hover:bg-dark-grey hover:text-white'
+                         : 'bg-surface-dark/50 text-text-primary hover:bg-white/20 hover:border-white/40 hover:brightness-110 border border-text-primary/20 transition-all'
                     }`}
                   >
                     0x{preset.toString(16).toUpperCase()}
@@ -465,10 +463,10 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
       </div>
 
       {/* Current Parameters Summary */}
-      <div className="mt-6 pt-6 border-t border-primary-light/10">
-        <p className="font-body text-sm text-primary-light mb-2">Active Parameters:</p>
-        <div className="flex flex-wrap gap-4 font-mono text-xs">
-          <span className="text-accent-pink">
+      <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-text-primary/20">
+        <p className="font-body text-xs sm:text-sm text-text-primary mb-1.5 sm:mb-2">Active Parameters:</p>
+        <div className="flex flex-wrap gap-2 sm:gap-4 font-mono text-[10px] sm:text-xs">
+            <span className="text-white truncate max-w-full">
             Matrix: {matrixCategory === 'paper' && PAPER_MATRICES[selectedMatrix as keyof typeof PAPER_MATRICES] 
               ? PAPER_MATRICES[selectedMatrix as keyof typeof PAPER_MATRICES].name
               : matrixCategory === 'standard' && STANDARD_MATRICES[selectedMatrix as keyof typeof STANDARD_MATRICES]
@@ -477,17 +475,17 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
               ? VARIATION_MATRICES[selectedMatrix as keyof typeof VARIATION_MATRICES].name
               : 'Custom'}
           </span>
-          <span className="text-accent-muted">
-            Constant: 0x{constant.toString(16).toUpperCase()} ({constant})
+            <span className="text-light-grey">
+            C: 0x{constant.toString(16).toUpperCase()}
           </span>
-          <span className="text-primary-light">
-            Formula: S(x) = Matrix × x^(-1) ⊕ 0x{constant.toString(16).toUpperCase()}
+          <span className="text-text-primary hidden sm:inline">
+            S(x) = M × x^(-1) ⊕ 0x{constant.toString(16).toUpperCase()}
           </span>
         </div>
       </div>
 
       {/* Parameter Presets */}
-      <div className="mt-6 pt-6 border-t border-primary-light/10">
+      <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-text-primary/20">
         <ParameterPresets
           onLoadPreset={(matrix, constValue) => {
             // Try to identify which category this matrix belongs to

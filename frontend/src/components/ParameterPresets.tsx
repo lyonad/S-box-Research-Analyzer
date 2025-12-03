@@ -68,9 +68,9 @@ const ParameterPresets: React.FC<ParameterPresetsProps> = ({
   };
 
   return (
-    <div className="glass-effect rounded-xl p-4 border border-primary-light/10">
-      <h4 className="font-heading text-lg font-bold text-white mb-4">
-        💾 Parameter Presets
+    <div className="glass-effect rounded-xl p-4 border border-text-primary/20">
+      <h4 className="font-subheading text-lg text-white mb-4">
+        Parameter Presets
       </h4>
 
       {/* Save Preset */}
@@ -81,12 +81,12 @@ const ParameterPresets: React.FC<ParameterPresetsProps> = ({
             value={presetName}
             onChange={(e) => setPresetName(e.target.value)}
             placeholder="Preset name..."
-            className="flex-1 px-3 py-2 bg-neutral-dark border border-primary-light/20 rounded-lg font-body text-sm text-white focus:border-accent-pink focus:outline-none"
+            className="flex-1 px-3 py-2 bg-surface-dark border border-text-primary/20 rounded-lg font-body text-sm text-white focus:border-white focus:outline-none"
             onKeyPress={(e) => e.key === 'Enter' && savePreset()}
           />
           <button
             onClick={savePreset}
-            className="px-4 py-2 bg-accent-pink hover:bg-accent-muted text-white rounded-lg font-body text-sm font-semibold transition-colors"
+            className="px-4 py-2 bg-white hover:bg-dark-grey hover:text-white text-black rounded-lg font-body text-sm font-semibold transition-colors"
           >
             Save
           </button>
@@ -99,13 +99,13 @@ const ParameterPresets: React.FC<ParameterPresetsProps> = ({
           {presets.map((preset, index) => (
             <div
               key={index}
-              className="flex items-center justify-between p-2 bg-neutral-dark/50 rounded-lg border border-primary-light/10"
+              className="flex items-center justify-between p-2 bg-surface-dark/50 rounded-lg border border-text-primary/20"
             >
               <div className="flex-1">
                 <p className="font-body text-sm font-semibold text-white">
                   {preset.name}
                 </p>
-                <p className="font-mono text-xs text-primary-light">
+                <p className="font-mono text-xs text-text-primary">
                   Matrix: {preset.matrix.length === 8 ? '8×8' : 'Invalid'} | 
                   C=0x{preset.constant.toString(16).toUpperCase()}
                 </p>
@@ -113,13 +113,13 @@ const ParameterPresets: React.FC<ParameterPresetsProps> = ({
               <div className="flex gap-2">
                 <button
                   onClick={() => loadPreset(preset)}
-                  className="px-3 py-1 bg-accent-pink/20 hover:bg-accent-pink/30 text-accent-pink rounded font-body text-xs font-semibold transition-colors"
+                  className="px-3 py-1 bg-white/20 hover:bg-white/30 text-white rounded font-body text-xs font-semibold transition-colors"
                 >
                   Load
                 </button>
                 <button
                   onClick={() => deletePreset(index)}
-                  className="px-3 py-1 bg-primary-light/20 hover:bg-primary-light/30 text-primary-light rounded font-body text-xs font-semibold transition-colors"
+                  className="px-3 py-1 bg-surface-dark hover:bg-white/20 hover:border-white/40 hover:brightness-110 border border-text-primary/20 text-text-primary rounded font-body text-xs font-semibold transition-all"
                 >
                   Delete
                 </button>
@@ -130,7 +130,7 @@ const ParameterPresets: React.FC<ParameterPresetsProps> = ({
       )}
 
       {presets.length === 0 && (
-        <p className="font-body text-sm text-primary-light/70 text-center py-4">
+        <p className="font-body text-sm text-text-primary/70 text-center py-4">
           No presets saved. Save your current parameters for quick access.
         </p>
       )}

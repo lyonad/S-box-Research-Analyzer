@@ -4,7 +4,7 @@
  * Comprehensive platform for affine matrices exploration and S-box research
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import TeamSection from './components/TeamSection';
@@ -17,7 +17,7 @@ import ComparisonTable from './components/ComparisonTable';
 import LoadingSpinner from './components/LoadingSpinner';
 import EncryptionPanel from './components/EncryptionPanel';
 import apiService from './api';
-import { ComparisonData, MetricComparison, AnalysisResults, SBox } from './types';
+import { ComparisonData, MetricComparison, AnalysisResults } from './types';
 
 // Default K44 matrix (from paper - best performer)
 const DEFAULT_K44_MATRIX = [
@@ -117,36 +117,36 @@ function App() {
       // Generate custom S-box if custom parameters are set
       if (hasCustomParams) {
         try {
-          const sboxResponse = await apiService.generateSBox(
-            false, // Don't use use_k44 flag when we have explicit matrix
-            customParams.matrix,
-            customParams.constant
-          );
+      const sboxResponse = await apiService.generateSBox(
+        false, // Don't use use_k44 flag when we have explicit matrix
+        customParams.matrix,
+        customParams.constant
+      );
           
           customSBoxToCompare = sboxResponse.sbox;
-          
-          // Determine matrix name for display
-          const matrixName = sboxResponse.matrix_used || 
-            (customParams.useCustom ? 'Custom Matrix' : 'Selected Matrix');
-          
-          // Store parameters for display
+      
+      // Determine matrix name for display
+      const matrixName = sboxResponse.matrix_used || 
+        (customParams.useCustom ? 'Custom Matrix' : 'Selected Matrix');
+      
+      // Store parameters for display
           customSBoxParamsToStore = {
-            matrix: [...customParams.matrix],
-            matrixName: matrixName,
-            constant: customParams.constant,
+        matrix: [...customParams.matrix],
+        matrixName: matrixName,
+        constant: customParams.constant,
           };
           
           // Store custom S-box and params
           setCustomSBox(sboxResponse.sbox);
           setCustomSBoxParams(customSBoxParamsToStore);
-          
+      
           // Analyze custom S-box
-          const analysisResponse = await apiService.analyzeSBox(
-            sboxResponse.sbox,
-            `${matrixName} S-box (C=0x${customParams.constant.toString(16).toUpperCase()})`
-          );
-          setCustomAnalysis(analysisResponse);
-        } catch (err: any) {
+      const analysisResponse = await apiService.analyzeSBox(
+        sboxResponse.sbox,
+        `${matrixName} S-box (C=0x${customParams.constant.toString(16).toUpperCase()})`
+      );
+      setCustomAnalysis(analysisResponse);
+    } catch (err: any) {
           console.warn('Failed to generate custom S-box, continuing with K44 and AES only:', err);
           // Continue with comparison even if custom generation fails
         }
@@ -265,22 +265,22 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-neutral-darker">
+    <div className="min-h-screen w-full bg-surface-darkest">
       <Header backendStatus={backendStatus} />
       <Hero />
       <TeamSection />
 
-      <main className="container mx-auto px-4 py-12">
+      <main className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-8 sm:py-10 md:py-12">
         {/* Error Display */}
         {error && (
-          <div className="mb-8 p-6 bg-accent-pink/10 border-l-4 border-accent-pink rounded-lg shadow-md">
-            <div className="flex items-center gap-3 text-accent-pink">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="mb-6 sm:mb-8 p-4 sm:p-6 bg-accent-warning/10 border-l-4 border-accent-warning rounded-lg shadow-md">
+            <div className="flex items-center gap-2 sm:gap-3 text-accent-warning">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="font-heading text-lg font-bold">Error:</span>
+              <span className="font-heading text-base sm:text-lg">Error:</span>
             </div>
-            <p className="mt-3 font-body text-sm text-primary-light">{error}</p>
+            <p className="mt-2 sm:mt-3 font-body text-xs sm:text-sm text-text-primary">{error}</p>
           </div>
         )}
 
@@ -307,7 +307,7 @@ function App() {
 
         {/* Loading State */}
         {loading && (
-          <div className="glass-effect rounded-2xl p-16 border border-primary-light/20">
+          <div className="glass-effect rounded-2xl p-16 border border-text-primary/20">
             <LoadingSpinner message="Generating S-boxes and performing cryptographic analysis..." />
           </div>
         )}
@@ -316,55 +316,55 @@ function App() {
         {!loading && comparisonData && (
           <>
             {/* Performance Info */}
-            <div className="mb-8 flex flex-wrap gap-4">
-              <div className="glass-effect rounded-xl px-6 py-3 flex items-center gap-3 border border-primary-light/10">
-                <span className="font-body text-primary-light text-sm font-medium">Generation Time:</span>
-                <span className="font-mono font-bold text-accent-pink text-lg">
-                  {comparisonData.generation_time_ms.toFixed(2)}ms
+            <div className="mb-6 sm:mb-8 flex flex-wrap gap-2 sm:gap-3 md:gap-4">
+              <div className="glass-effect rounded-lg sm:rounded-xl px-3 sm:px-4 md:px-6 py-2 sm:py-3 flex items-center gap-2 sm:gap-3 border border-text-primary/10">
+                <span className="font-body text-text-primary text-xs sm:text-sm font-medium">Generation:</span>
+                <span className="font-mono font-bold text-white text-sm sm:text-base md:text-lg">
+                  {(comparisonData.generation_time_ms / 1000).toFixed(2)}s
                 </span>
               </div>
-              <div className="glass-effect rounded-xl px-6 py-3 flex items-center gap-3 border border-primary-light/10">
-                <span className="font-body text-primary-light text-sm font-medium">Analysis Time:</span>
-                <span className="font-mono font-bold text-accent-muted text-lg">
-                  {comparisonData.analysis_time_ms.toFixed(2)}ms
+              <div className="glass-effect rounded-lg sm:rounded-xl px-3 sm:px-4 md:px-6 py-2 sm:py-3 flex items-center gap-2 sm:gap-3 border border-text-primary/10">
+                <span className="font-body text-text-primary text-xs sm:text-sm font-medium">Analysis:</span>
+                <span className="font-mono font-bold text-light-grey text-sm sm:text-base md:text-lg">
+                  {(comparisonData.analysis_time_ms / 1000).toFixed(2)}s
                 </span>
               </div>
-              <div className="glass-effect rounded-xl px-6 py-3 flex items-center gap-3 border border-primary-light/10">
-                <span className="font-body text-primary-light text-sm font-medium">Total Time:</span>
-                <span className="font-mono font-bold text-primary-light text-lg">
-                  {(comparisonData.generation_time_ms + comparisonData.analysis_time_ms).toFixed(2)}ms
+              <div className="glass-effect rounded-lg sm:rounded-xl px-3 sm:px-4 md:px-6 py-2 sm:py-3 flex items-center gap-2 sm:gap-3 border border-text-primary/10">
+                <span className="font-body text-text-primary text-xs sm:text-sm font-medium">Total:</span>
+                <span className="font-mono font-bold text-text-primary text-sm sm:text-base md:text-lg">
+                  {((comparisonData.generation_time_ms + comparisonData.analysis_time_ms) / 1000).toFixed(2)}s
                 </span>
               </div>
             </div>
 
             {/* Tabs */}
-            <div className="mb-8 flex gap-3 overflow-x-auto border-b-2 border-primary-light/10">
+            <div className="mb-6 sm:mb-8 flex gap-1 sm:gap-2 md:gap-3 overflow-x-auto border-b-2 border-text-primary/20 pb-0 -mx-2 px-2 sm:mx-0 sm:px-0">
               <button
                 onClick={() => setActiveTab('comparison')}
-                className={`font-heading px-8 py-4 rounded-t-xl font-bold transition-all ${
+                className={`font-heading px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-3 md:py-4 rounded-t-lg sm:rounded-t-xl font-bold transition-all text-xs sm:text-sm md:text-base whitespace-nowrap ${
                   activeTab === 'comparison'
-                    ? 'bg-accent-pink text-white shadow-lg -mb-0.5'
-                    : 'text-primary-light hover:text-accent-pink hover:bg-primary-light/5'
+                    ? 'bg-white text-black hover:bg-dark-grey hover:text-white shadow-lg -mb-0.5'
+                    : 'text-text-primary hover:text-white hover:bg-white/20 hover:brightness-110 transition-all'
                 }`}
               >
                 Comparison
               </button>
               <button
                 onClick={() => setActiveTab('k44')}
-                className={`font-heading px-8 py-4 rounded-t-xl font-bold transition-all ${
+                className={`font-heading px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-3 md:py-4 rounded-t-lg sm:rounded-t-xl font-bold transition-all text-xs sm:text-sm md:text-base whitespace-nowrap ${
                   activeTab === 'k44'
-                    ? 'bg-accent-pink text-white shadow-lg -mb-0.5'
-                    : 'text-primary-light hover:text-accent-pink hover:bg-primary-light/5'
+                    ? 'bg-white text-black hover:bg-dark-grey hover:text-white shadow-lg -mb-0.5'
+                    : 'text-text-primary hover:text-white hover:bg-white/20 hover:brightness-110 transition-all'
                 }`}
               >
                 Research (K44)
               </button>
               <button
                 onClick={() => setActiveTab('aes')}
-                className={`font-heading px-8 py-4 rounded-t-xl font-bold transition-all ${
+                className={`font-heading px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-3 md:py-4 rounded-t-lg sm:rounded-t-xl font-bold transition-all text-xs sm:text-sm md:text-base whitespace-nowrap ${
                   activeTab === 'aes'
-                    ? 'bg-accent-pink text-white shadow-lg -mb-0.5'
-                    : 'text-primary-light hover:text-accent-pink hover:bg-primary-light/5'
+                    ? 'bg-white text-black hover:bg-dark-grey hover:text-white shadow-lg -mb-0.5'
+                    : 'text-text-primary hover:text-white hover:bg-white/20 hover:brightness-110 transition-all'
                 }`}
               >
                 AES S-box
@@ -372,13 +372,13 @@ function App() {
               {customSBox && (
                 <button
                   onClick={() => setActiveTab('custom')}
-                  className={`font-heading px-8 py-4 rounded-t-xl font-bold transition-all ${
-                    activeTab === 'custom'
-                      ? 'bg-accent-pink text-white shadow-lg -mb-0.5'
-                      : 'text-primary-light hover:text-accent-pink hover:bg-primary-light/5'
+                   className={`font-heading px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-3 md:py-4 rounded-t-lg sm:rounded-t-xl font-bold transition-all text-xs sm:text-sm md:text-base whitespace-nowrap ${
+                      activeTab === 'custom'
+                       ? 'bg-white text-black shadow-lg -mb-0.5'
+                       : 'text-text-primary hover:text-white hover:bg-white/20 hover:brightness-110 transition-all'
                   }`}
                 >
-                  Custom S-box
+                  Custom
                 </button>
               )}
             </div>
@@ -390,7 +390,7 @@ function App() {
                   <SBoxGrid 
                     sbox={comparisonData.k44_sbox} 
                     title="Research S-box (K44) - 16×16 Hexadecimal Grid"
-                    highlightColor="bg-accent-pink"
+                    highlightColor="bg-white"
                   />
                   {getK44Results() && (
                     <MetricsPanel 
@@ -407,7 +407,7 @@ function App() {
                   <SBoxGrid 
                     sbox={comparisonData.aes_sbox} 
                     title="Standard AES S-box - 16×16 Hexadecimal Grid"
-                    highlightColor="bg-accent-muted"
+                    highlightColor="bg-light-grey"
                   />
                   {getAESResults() && (
                     <MetricsPanel 
@@ -424,23 +424,23 @@ function App() {
                   <ComparisonTable comparisons={getComparisonMetrics()} />
                   
                   {/* Side-by-side S-boxes */}
-                  <div className={`grid grid-cols-1 ${comparisonData.custom_sbox ? 'lg:grid-cols-3' : 'lg:grid-cols-2'} gap-8`}>
+                  <div className={`grid grid-cols-1 ${comparisonData.custom_sbox ? 'xl:grid-cols-3' : 'lg:grid-cols-2'} gap-4 sm:gap-6 md:gap-8`}>
                     <SBoxGrid 
                       sbox={comparisonData.k44_sbox} 
                       title="Research S-box (K44)"
-                      highlightColor="bg-accent-pink"
+                      highlightColor="bg-white"
                     />
                     <SBoxGrid 
                       sbox={comparisonData.aes_sbox} 
                       title="AES S-box"
-                      highlightColor="bg-accent-muted"
+                      highlightColor="bg-light-grey"
                     />
                     {comparisonData.custom_sbox && (
                       <SBoxGrid 
                         sbox={comparisonData.custom_sbox} 
                         title={`Custom S-box${customSBoxParams ? ` (${customSBoxParams.matrixName})` : ''}`}
-                        highlightColor="bg-pink-500"
-                      />
+                        highlightColor="bg-white"
+                    />
                     )}
                   </div>
                 </>
@@ -463,7 +463,7 @@ function App() {
                       <SBoxGrid 
                         sbox={comparisonData.custom_sbox} 
                         title={`Custom S-box${customSBoxParams ? ` (${customSBoxParams.matrixName})` : ''}`}
-                        highlightColor="bg-pink-500"
+                        highlightColor="bg-white"
                       />
                       {getCustomResults() && (
                         <MetricsPanel 
@@ -474,24 +474,24 @@ function App() {
                       )}
                     </>
                   ) : customSBox && customAnalysis && customSBoxParams ? (
-                    <>
-                      <ParameterInfo
-                        matrix={customSBoxParams.matrix}
-                        matrixName={customSBoxParams.matrixName}
-                        constant={customSBoxParams.constant}
-                        defaultMatrix={DEFAULT_K44_MATRIX}
-                        defaultConstant={DEFAULT_CONSTANT}
-                      />
-                      <SBoxGrid 
-                        sbox={customSBox} 
-                        title={`${customSBoxParams.matrixName} S-box (C=0x${customSBoxParams.constant.toString(16).toUpperCase()})`}
-                        highlightColor="bg-accent-pink"
-                      />
-                      <MetricsPanel 
-                        results={customAnalysis} 
-                        title={`${customSBoxParams.matrixName} S-box - Cryptographic Analysis`}
-                        accentColor="pink"
-                      />
+                <>
+                  <ParameterInfo
+                    matrix={customSBoxParams.matrix}
+                    matrixName={customSBoxParams.matrixName}
+                    constant={customSBoxParams.constant}
+                    defaultMatrix={DEFAULT_K44_MATRIX}
+                    defaultConstant={DEFAULT_CONSTANT}
+                  />
+                  <SBoxGrid 
+                    sbox={customSBox} 
+                    title={`${customSBoxParams.matrixName} S-box (C=0x${customSBoxParams.constant.toString(16).toUpperCase()})`}
+                    highlightColor="bg-white"
+                  />
+                  <MetricsPanel 
+                    results={customAnalysis} 
+                    title={`${customSBoxParams.matrixName} S-box - Cryptographic Analysis`}
+                    accentColor="pink"
+                  />
                     </>
                   ) : null}
                 </>
@@ -504,7 +504,7 @@ function App() {
         {!loading && customSBox && customAnalysis && customSBoxParams && !comparisonData && (
           <div className="space-y-8">
             <div className="mb-6">
-              <h2 className="font-heading text-3xl font-bold text-white mb-2">
+              <h2 className="font-subheading text-3xl text-white mb-2">
                 Custom S-box Analysis
               </h2>
               <div className="w-24 h-1 bg-gradient-primary"></div>
@@ -519,7 +519,7 @@ function App() {
             <SBoxGrid 
               sbox={customSBox} 
               title={`${customSBoxParams.matrixName} S-box (C=0x${customSBoxParams.constant.toString(16).toUpperCase()})`}
-              highlightColor="bg-accent-pink"
+                highlightColor="bg-white"
             />
             <MetricsPanel 
               results={customAnalysis} 
@@ -529,14 +529,29 @@ function App() {
           </div>
         )}
 
+        {/* Ready to Analyze Card */}
+        {!loading && !comparisonData && !customSBox && !error && (
+          <div className="glass-effect rounded-xl sm:rounded-2xl p-8 sm:p-12 md:p-16 text-center border border-text-primary/10">
+            <h2 className="font-subheading text-xl sm:text-2xl md:text-3xl text-white mb-3 sm:mb-4">
+              Ready to Analyze
+            </h2>
+            <p className="font-body text-sm sm:text-base md:text-lg text-text-primary mb-3 sm:mb-4">
+              Use the Research Parameters panel above to explore different affine matrices and customize S-box generation, or
+            </p>
+            <p className="font-body text-sm sm:text-base md:text-lg text-text-primary">
+              Click "Generate & Analyze" to compare multiple S-box configurations
+            </p>
+          </div>
+        )}
+
         {/* Encryption & Decryption Panel */}
-        <div className="mt-16">
-          <div className="mb-6">
-            <h2 className="font-heading text-3xl font-bold text-white mb-2">
+        <div className="mt-10 sm:mt-12 md:mt-16">
+          <div className="mb-4 sm:mb-6">
+            <h2 className="font-subheading text-xl sm:text-2xl md:text-3xl text-white mb-4">
               Encryption & Decryption
             </h2>
-            <div className="w-24 h-1 bg-gradient-primary"></div>
-            <p className="font-body text-primary-light mt-4">
+            <div className="w-16 h-[2px] bg-white/60"></div>
+            <p className="font-body text-text-primary mt-3 sm:mt-4 text-sm sm:text-base">
               Encrypt and decrypt messages using AES-128 with K44, AES, or custom S-box
             </p>
           </div>
@@ -546,52 +561,44 @@ function App() {
           />
         </div>
 
-        {/* Initial State */}
+        {/* Initial State - REMOVED: Ready to Analyze card moved above Encryption section */}
         {!loading && !comparisonData && !customSBox && !error && (
-          <div className="glass-effect rounded-2xl p-16 text-center border border-primary-light/10">
-            <h2 className="font-heading text-3xl font-bold text-white mb-4">
-              Ready to Analyze
-            </h2>
-            <p className="font-body text-lg text-primary-light mb-4">
-              Use the Research Parameters panel above to explore different affine matrices and customize S-box generation, or
-            </p>
-            <p className="font-body text-lg text-primary-light">
-              Click "Generate & Analyze" to compare multiple S-box configurations
-            </p>
+          <div className="hidden">
+            {/* This section is now empty - Ready to Analyze card moved above */}
           </div>
         )}
       </main>
 
       {/* Footer */}
-      <footer className="w-full bg-neutral-darker text-white mt-16 border-t border-primary-light/10">
-        <div className="container mx-auto px-4 py-8">
+      <footer className="w-full bg-surface-darkest text-white mt-10 sm:mt-12 md:mt-16 border-t border-text-primary/10">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
               <img 
                 src="/images/UNNES Logo.png" 
                 alt="UNNES" 
-                className="w-12 h-12 object-contain"
+                className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
               />
               <div className="text-left">
-                <p className="font-heading text-sm font-bold text-white">AES S-box Research Analyzer</p>
-                <p className="font-body text-xs text-primary-light">
+                <p className="font-heading text-xs sm:text-sm text-white">AES S-box Research Analyzer</p>
+                <p className="font-body text-[10px] sm:text-xs text-text-primary">
                   Universitas Negeri Semarang
                 </p>
               </div>
             </div>
             <div className="text-center md:text-right">
-              <p className="font-body text-sm text-primary-light">
+              <p className="font-body text-xs sm:text-sm text-text-primary">
                 Affine Matrices Exploration Platform
               </p>
-              <p className="font-body text-xs text-primary-light/70 mt-1">
+              <p className="font-body text-[10px] sm:text-xs text-text-primary/70 mt-1">
                 Based on research:{' '}
                 <a 
                   href="https://link.springer.com/article/10.1007/s11071-024-10414-3" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-accent-pink hover:text-accent-muted underline transition-colors duration-200"
+                  className="text-white hover:text-light-grey underline transition-colors duration-200"
                 >
-                  AES S-box modification uses affine matrices exploration
+                  AES S-box modification
                 </a>
               </p>
             </div>

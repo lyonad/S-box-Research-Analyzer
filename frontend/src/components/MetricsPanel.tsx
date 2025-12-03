@@ -23,33 +23,33 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, icon, metrics, accentCol
   const getStatusColor = (status?: 'good' | 'warning' | 'info') => {
     switch (status) {
       case 'good':
-        return 'text-accent-pink';
+        return 'text-white';
       case 'warning':
-        return 'text-accent-muted';
+        return 'text-accent-warning';
       case 'info':
       default:
-        return 'text-primary-light';
+        return 'text-text-primary';
     }
   };
 
   return (
-    <div className="glass-effect rounded-2xl p-6 hover:shadow-2xl transition-all duration-300 border border-primary-light/10">
-      <div className="flex items-center mb-5 pb-4 border-b border-primary-light/10">
-        {icon && <span className="text-3xl mr-3">{icon}</span>}
-        <h4 className="font-heading text-xl font-bold text-white">{title}</h4>
+    <div className="glass-effect rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-text-primary/10">
+      <div className="flex items-center mb-3 sm:mb-5 pb-3 sm:pb-4 border-b border-text-primary/20">
+        {icon && <span className="text-2xl sm:text-3xl mr-2 sm:mr-3">{icon}</span>}
+        <h4 className="font-subheading text-base sm:text-lg md:text-xl text-white">{title}</h4>
       </div>
       
-      <div className="space-y-4">
+      <div className="space-y-2 sm:space-y-4">
         {metrics.map((metric, index) => (
-          <div key={index} className="flex justify-between items-center">
-            <span className="font-body text-sm text-primary-light font-medium">{metric.label}:</span>
-            <div className="flex items-center gap-2">
-              <span className={`text-sm font-mono font-bold ${getStatusColor(metric.status)}`}>
+          <div key={index} className="flex justify-between items-center gap-2">
+            <span className="font-body text-xs sm:text-sm text-text-primary font-medium">{metric.label}:</span>
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+              <span className={`text-xs sm:text-sm font-mono font-bold ${getStatusColor(metric.status)}`}>
                 {typeof metric.value === 'number' ? metric.value.toFixed(5) : metric.value}
               </span>
               {metric.target && (
-                <span className="font-body text-xs text-primary-light/70">
-                  (Target: {metric.target})
+                <span className="font-body text-[10px] sm:text-xs text-text-primary/70 hidden sm:inline">
+                  ({metric.target})
                 </span>
               )}
             </div>
@@ -77,15 +77,15 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({ results, title, accentColor
 
   return (
     <div className="w-full">
-      <div className="mb-8">
-        <h3 className="font-heading text-3xl font-bold text-white mb-2">{title}</h3>
-        <div className="w-24 h-1 bg-gradient-primary mb-3"></div>
-        <p className="font-body text-sm text-primary-light">
-          Analysis completed in {results.analysis_time_ms.toFixed(2)}ms
+      <div className="mb-4 sm:mb-6 md:mb-8">
+        <h3 className="font-subheading text-xl sm:text-2xl md:text-3xl text-white mb-2">{title}</h3>
+        <div className="w-16 sm:w-20 md:w-24 h-1 bg-gradient-primary mb-2 sm:mb-3"></div>
+        <p className="font-body text-xs sm:text-sm text-text-primary">
+          Analysis: {(results.analysis_time_ms / 1000).toFixed(2)}s
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
         {/* Nonlinearity */}
         <MetricCard
           title="Nonlinearity (NL)"

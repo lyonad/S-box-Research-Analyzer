@@ -133,13 +133,19 @@ The application will be available at `http://localhost:3000`
 - **Real-time Generation**: Generate S-boxes with custom parameters
 
 ### 3. Visualization
-- **Interactive Grid**: 16×16 hexadecimal display
-- **Hover Effects**: Shows detailed information (hex, decimal, binary)
-- **Color Coding**: Blue for K44, Purple for AES
-- **Cell Selection**: Click to lock information display
-- **Parameter Display**: Shows active matrix and constant values
+- **Interactive Grid**: 16×16 hexadecimal display for every S-box
+- **Hover & Focus States**: Shows detailed information (hex, decimal, binary) with tap-to-lock on touch devices
+- **Adaptive Color Coding**: Neutral grayscale palette so K44 / AES / Custom cells remain legible in dark mode
+- **Parameter Display**: Contextual chip that always shows which matrix/constant produced the grid
 
-### 4. Cryptographic Analysis
+### 4. Control & Parameter Workflow
+- **Research Parameter Panel**: Category tabs (Paper / Standard / Variations / Custom) with full matrix previews
+- **Custom Matrix Editor**: Accepts binary, hex, or decimal input per row with live validation
+- **Constant Presets**: One-click presets (0x63, 0x00, 0xFF, 0xAA, 0x55)
+- **Parameter Presets**: Saved configurations you can load into the analyzer instantly
+- **Control Panel**: “Generate & Compare” button with status badges that indicate whether custom parameters are active
+
+### 5. Cryptographic Analysis
 
 #### Nonlinearity (NL)
 Measures resistance to linear cryptanalysis. Higher is better.
@@ -162,12 +168,29 @@ Measures independence between output bit functions.
 - **K44 DAP**: 0.015625 ✅ (Matches paper exactly)
 - Lower values indicate better security
 
-### 5. Comparison Dashboard
+### 6. Comparison Dashboard
 - Side-by-side metric comparison
 - Winner indication for each metric
 - Visual comparison of S-box grids
 - Performance metrics (generation and analysis time)
 - Detailed parameter information display
+
+### 7. Custom S-box Analysis Mode
+- Stores the most recent custom matrix/constant combo
+- Dedicated tab that shows ParameterInfo, SBoxGrid, and MetricsPanel just for the custom result
+- Works even when the comparison endpoint fails (falls back to local custom analysis view)
+
+### 8. Encryption & Decryption Sandbox
+- AES-128 CBC mode with PKCS7 padding
+- Lets you pick K44, AES, or a generated custom S-box
+- Plaintext / ciphertext textareas with copy buttons
+- Automatic key padding/truncation to 16 bytes
+- Processing indicator with execution time in milliseconds
+
+### 9. Researcher Showcase
+- Interactive 3D cards for each researcher with hover tilt, shine effect, and animated borders
+- Background gradient and subtle particles to highlight the team section
+- Useful for presenting contributors in academic demos
 
 ## 🔬 Research Context
 
@@ -250,7 +273,7 @@ python cryptographic_tests.py
 python full_project_verification.py
 ```
 
-### Frontend Build
+### Frontend Build & Quality Checks
 ```bash
 cd frontend
 
@@ -259,6 +282,9 @@ npm run build
 
 # Preview production build
 npm run preview
+
+# Run linter (ESLint + TypeScript checks)
+npm run lint
 ```
 
 ### Verification Results
@@ -275,16 +301,24 @@ The project includes a comprehensive verification script (`backend/full_project_
 
 ## 🎨 Design Features
 
-- **Dark Theme**: Professional dark mode with gradient backgrounds
-- **Glass Morphism**: Modern frosted glass effect on panels
-- **Typography**: Inter for UI, Fira Code for monospace
-- **Color Palette**:
-  - K44: Blue accent (#3b82f6)
-  - AES: Purple accent (#8b5cf6)
-  - Success: Green (#10b981)
-  - Warning: Yellow (#f59e0b)
-  - Error: Red (#ef4444)
-- **Responsive**: Works on desktop, tablet, and mobile devices
+- **Dark Theme**: Professional monochrome dark mode with depth layers
+- **Glass Morphism**: Modern frosted glass effect on panels and cards
+- **Typography Stack**:
+  - `Inter` Bold for main titles (H1)
+  - `Poppins` Semibold for subheadings (H2–H6)
+  - `Roboto` Regular for body text and subtitles
+  - `Fira Code` for monospace metric readouts
+- **Greyscale Palette**:
+  - Pure White `#FFFFFF`
+  - Lightest Grey `#F2F2F2`
+  - Extra Light Grey `#E5E5E5`
+  - Light Grey `#CCCCCC`
+  - Medium Grey `#999999`
+  - Dark Grey `#666666`
+  - Extra Dark Grey `#333333`
+  - Pure Black `#000000`
+- **Interactive Research Cards**: 3D tilt, shine effect, gradient overlays, and animated borders
+- **Responsive Layout**: Optimized for desktop, tablet, and mobile viewports
 
 ## 📝 Mathematical Background
 
@@ -331,6 +365,7 @@ Where matrix multiplication is performed in GF(2) (binary field).
 ### Known Differences
 - **Standard AES S-box**: Some values differ because generator 3 is used instead of generator 2. This does not affect the K44 S-box results or paper compliance.
 - **BIC-SAC and LAP**: Values may differ slightly due to different calculation methodologies, but core metrics (NL, SAC, BIC-NL, DAP) match the paper perfectly.
+- **UI Theme**: The current frontend uses a grayscale palette (Pure White → Pure Black) plus Inter/Poppins/Roboto typography for readability, which differs from the original research screenshots but keeps accessibility high.
 
 ## 🤝 Contributing
 

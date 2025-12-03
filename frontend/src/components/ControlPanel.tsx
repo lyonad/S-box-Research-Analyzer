@@ -18,41 +18,80 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   hasCustomParams = false
 }) => {
   return (
-    <div className="glass-effect rounded-2xl p-8 mb-8 border border-primary-light/10">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-        <div className="flex-1">
-          <h2 className="font-heading text-2xl md:text-3xl font-bold text-white mb-3">
+    <div className="glass-effect rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 border border-text-primary/10">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 sm:gap-6">
+        <div className="flex-1 w-full lg:w-auto">
+          <h2 className="font-subheading text-xl sm:text-2xl md:text-3xl text-white mb-2 sm:mb-3">
             Control Panel
           </h2>
-          <p className="font-body text-primary-light text-base mb-4">
+          <p className="font-body text-text-primary text-sm sm:text-base mb-3 sm:mb-4">
             Generate and analyze S-boxes using multiple affine matrices (K44, K43, K45, AES, and custom) with comprehensive cryptographic strength testing
           </p>
-          <div className="flex flex-wrap gap-2">
-            <span className="px-4 py-2 bg-accent-pink/20 text-accent-pink text-sm font-semibold rounded-full border border-accent-pink/30">
-              Multiple Matrices
-            </span>
-            <span className="px-4 py-2 bg-accent-muted/20 text-accent-muted text-sm font-semibold rounded-full border border-accent-muted/30">
-              GF(2⁸)
-            </span>
-            <span className="px-4 py-2 bg-primary-light/10 text-primary-light text-sm font-semibold rounded-full border border-primary-light/20">
-              Polynomial: 0x11B
-            </span>
-            <span className="px-4 py-2 bg-primary-light/10 text-primary-light text-sm font-semibold rounded-full border border-primary-light/20">
-              Customizable
-            </span>
+          <div className="flex flex-wrap gap-2 sm:gap-3">
+            {/* Multiple Matrices Badge */}
+            <div className="relative">
+              <div className="relative px-3 sm:px-4 py-1.5 sm:py-2 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10 overflow-hidden">
+                {/* Continuous Shimmer Animation */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer"></div>
+                {/* Pulsing Border Glow */}
+                <div className="absolute inset-0 rounded-lg border border-white/20 animate-pulse opacity-50"></div>
+                <div className="flex items-center relative z-10">
+                  <span className="text-xs sm:text-sm font-semibold text-white">Multiple Matrices</span>
+                </div>
+              </div>
+            </div>
+
+            {/* GF(2⁸) Badge */}
+            <div className="relative">
+              <div className="relative px-3 sm:px-4 py-1.5 sm:py-2 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10 overflow-hidden">
+                {/* Continuous Shimmer Animation */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" style={{ animationDelay: '0.5s' }}></div>
+                {/* Pulsing Border Glow */}
+                <div className="absolute inset-0 rounded-lg border border-white/20 animate-pulse opacity-50" style={{ animationDelay: '0.5s' }}></div>
+                <div className="flex items-center relative z-10">
+                  <span className="text-xs sm:text-sm font-semibold text-white">GF(2⁸)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Polynomial Badge */}
+            <div className="relative">
+              <div className="relative px-3 sm:px-4 py-1.5 sm:py-2 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10 overflow-hidden">
+                {/* Continuous Shimmer Animation */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" style={{ animationDelay: '1s' }}></div>
+                {/* Pulsing Border Glow */}
+                <div className="absolute inset-0 rounded-lg border border-white/20 animate-pulse opacity-50" style={{ animationDelay: '1s' }}></div>
+                <div className="flex items-center relative z-10">
+                  <span className="text-xs sm:text-sm font-semibold text-white/90">Polynomial: 0x11B</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Customizable Badge */}
+            <div className="relative">
+              <div className="relative px-3 sm:px-4 py-1.5 sm:py-2 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10 overflow-hidden">
+                {/* Continuous Shimmer Animation */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" style={{ animationDelay: '1.5s' }}></div>
+                {/* Pulsing Border Glow */}
+                <div className="absolute inset-0 rounded-lg border border-white/20 animate-pulse opacity-50" style={{ animationDelay: '1.5s' }}></div>
+                <div className="flex items-center relative z-10">
+                  <span className="text-xs sm:text-sm font-semibold text-white/90">Customizable</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         
-        <div className="flex flex-col gap-3 w-full md:w-auto">
+        <div className="flex flex-col gap-2 sm:gap-3 w-full lg:w-auto">
           <button
             onClick={onGenerateAndCompare}
             disabled={loading}
             className={`
-              font-body px-10 py-5 rounded-xl font-bold text-white text-lg
+              font-body px-6 sm:px-8 md:px-10 py-3 sm:py-4 md:py-5 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base md:text-lg
               transition-all duration-300 transform shadow-lg
               ${loading 
-                ? 'bg-primary-light/20 cursor-not-allowed' 
-                : 'bg-accent-pink hover:bg-accent-muted hover:shadow-2xl hover:scale-105'
+                ? 'bg-surface-dark text-text-primary/50 cursor-not-allowed border border-text-primary/30 opacity-60' 
+                : 'bg-white text-black hover:bg-dark-grey hover:text-white hover:shadow-2xl hover:brightness-95'
               }
             `}
           >
@@ -74,10 +113,10 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             )}
           </button>
           
-          <div className="font-body text-sm text-primary-light text-center">
+          <div className="font-body text-sm text-text-primary text-center">
             Performs complete cryptographic analysis
             {hasCustomParams && (
-              <span className="block mt-1 text-accent-pink font-semibold">
+              <span className="block mt-1 text-white font-semibold">
                 Custom S-box will be included automatically
               </span>
             )}
@@ -85,7 +124,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           
           {showCustomOption && (
             <div className="mt-2 text-center">
-              <p className="font-body text-xs text-primary-light/70">
+              <p className="font-body text-xs text-text-primary/70">
                 {hasCustomParams 
                   ? 'Custom parameters detected - will be included in comparison'
                   : 'Use Research Parameters panel above to customize'

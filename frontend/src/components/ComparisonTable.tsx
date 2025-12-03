@@ -37,27 +37,27 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({ comparisons }) => {
   };
 
   return (
-    <div className="w-full overflow-x-auto">
-      <div className="glass-effect rounded-2xl p-8 border border-primary-light/10">
-        <div className="mb-6">
-          <h3 className="font-heading text-3xl font-bold text-white mb-2">
+    <div className="w-full overflow-x-auto -mx-2 sm:mx-0 px-2 sm:px-0">
+      <div className="glass-effect rounded-lg sm:rounded-2xl p-4 sm:p-6 md:p-8 border border-text-primary/20">
+        <div className="mb-4 sm:mb-6">
+          <h3 className="font-subheading text-xl sm:text-2xl md:text-3xl text-white mb-2">
             Side-by-Side Comparison
           </h3>
-          <div className="w-24 h-1 bg-gradient-primary"></div>
+          <div className="w-16 sm:w-20 md:w-24 h-1 bg-gradient-primary"></div>
         </div>
         
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full min-w-[600px]">
             <thead>
-              <tr className="border-b-2 border-primary-light/20">
-                <th className="text-left py-4 px-4 font-heading text-base font-bold text-white">Metric</th>
-                <th className="text-center py-4 px-4 font-heading text-base font-bold text-accent-pink">Research S-box (K44)</th>
-                <th className="text-center py-4 px-4 font-heading text-base font-bold text-accent-muted">Standard AES S-box</th>
+              <tr className="border-b-2 border-text-primary/20">
+                <th className="text-left py-2 sm:py-3 md:py-4 px-2 sm:px-3 md:px-4 font-heading text-xs sm:text-sm md:text-base text-white">Metric</th>
+                <th className="text-center py-2 sm:py-3 md:py-4 px-2 sm:px-3 md:px-4 font-heading text-xs sm:text-sm md:text-base text-white">Research (K44)</th>
+                <th className="text-center py-2 sm:py-3 md:py-4 px-2 sm:px-3 md:px-4 font-heading text-xs sm:text-sm md:text-base text-light-grey">AES S-box</th>
                 {hasCustom && (
-                  <th className="text-center py-4 px-4 font-heading text-base font-bold text-pink-400">Custom S-box</th>
+                  <th className="text-center py-2 sm:py-3 md:py-4 px-2 sm:px-3 md:px-4 font-heading text-xs sm:text-sm md:text-base text-white">Custom</th>
                 )}
-                <th className="text-center py-4 px-4 font-heading text-base font-bold text-primary-light">Target</th>
-                <th className="text-center py-4 px-4 font-heading text-base font-bold text-white">Winner</th>
+                <th className="text-center py-2 sm:py-3 md:py-4 px-2 sm:px-3 md:px-4 font-heading text-xs sm:text-sm md:text-base text-text-primary">Target</th>
+                <th className="text-center py-2 sm:py-3 md:py-4 px-2 sm:px-3 md:px-4 font-heading text-xs sm:text-sm md:text-base text-white">Winner</th>
               </tr>
             </thead>
             <tbody>
@@ -70,28 +70,28 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({ comparisons }) => {
                 return (
                   <tr 
                     key={index}
-                    className="border-b border-primary-light/10 hover:bg-primary-light/5 transition-colors"
+                    className="border-b border-text-primary/20"
                   >
-                    <td className="py-4 px-4 font-body text-primary-light font-medium">{comparison.name}</td>
-                    <td className={`py-4 px-4 text-center font-mono font-bold ${
-                      winner === 'k44' ? 'text-accent-pink' : 'text-primary-light'
+                    <td className="py-2 sm:py-3 md:py-4 px-2 sm:px-3 md:px-4 font-body text-text-primary font-medium text-xs sm:text-sm md:text-base">{comparison.name}</td>
+                    <td                     className={`py-2 sm:py-3 md:py-4 px-2 sm:px-3 md:px-4 text-center font-mono font-bold text-xs sm:text-sm md:text-base ${
+                      winner === 'k44' ? 'text-white' : 'text-text-primary'
                     }`}>
                       {typeof comparison.k44 === 'number' 
                         ? comparison.k44.toFixed(5) 
                         : comparison.k44}
                       {comparison.unit && <span className="text-xs ml-1">{comparison.unit}</span>}
                     </td>
-                    <td className={`py-4 px-4 text-center font-mono font-bold ${
-                      winner === 'aes' ? 'text-accent-pink' : 'text-primary-light'
+                    <td className={`py-2 sm:py-3 md:py-4 px-2 sm:px-3 md:px-4 text-center font-mono font-bold text-xs sm:text-sm md:text-base ${
+                      winner === 'aes' ? 'text-white' : 'text-text-primary'
                     }`}>
                       {typeof comparison.aes === 'number' 
                         ? comparison.aes.toFixed(5) 
                         : comparison.aes}
-                      {comparison.unit && <span className="text-xs ml-1">{comparison.unit}</span>}
+                      {comparison.unit && <span className="text-[10px] sm:text-xs ml-1">{comparison.unit}</span>}
                     </td>
                     {hasCustom && (
-                      <td className={`py-4 px-4 text-center font-mono font-bold ${
-                        winner === 'custom' ? 'text-accent-pink' : 'text-primary-light'
+                      <td                       className={`py-2 sm:py-3 md:py-4 px-2 sm:px-3 md:px-4 text-center font-mono font-bold text-xs sm:text-sm md:text-base ${
+                        winner === 'custom' ? 'text-white' : 'text-text-primary'
                       }`}>
                         {comparison.custom !== undefined ? (
                           <>
@@ -101,22 +101,22 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({ comparisons }) => {
                             {comparison.unit && <span className="text-xs ml-1">{comparison.unit}</span>}
                           </>
                         ) : (
-                          <span className="text-primary-light/50">-</span>
+                          <span className="text-text-primary/50">-</span>
                         )}
                       </td>
                     )}
-                    <td className="py-4 px-4 text-center font-body text-primary-light text-sm">
+                    <td className="py-2 sm:py-3 md:py-4 px-2 sm:px-3 md:px-4 text-center font-body text-text-primary text-[10px] sm:text-xs md:text-sm">
                       {comparison.target || '-'}
                     </td>
-                    <td className="py-4 px-4 text-center">
+                    <td className="py-2 sm:py-3 md:py-4 px-2 sm:px-3 md:px-4 text-center">
                       {winner === 'equal' ? (
-                        <span className="font-body text-primary-light/50">-</span>
+                        <span className="font-body text-text-primary/60 text-xs sm:text-sm">-</span>
                       ) : winner === 'k44' ? (
-                        <span className="font-body text-accent-pink font-bold">K44</span>
+                        <span className="font-body text-white font-bold text-xs sm:text-sm">K44</span>
                       ) : winner === 'aes' ? (
-                        <span className="font-body text-accent-muted font-bold">AES</span>
+                        <span className="font-body text-light-grey font-bold text-xs sm:text-sm">AES</span>
                       ) : (
-                        <span className="font-body text-pink-400 font-bold">Custom</span>
+                        <span className="font-body text-white font-bold text-xs sm:text-sm">Custom</span>
                       )}
                     </td>
                   </tr>
