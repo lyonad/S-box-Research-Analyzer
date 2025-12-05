@@ -76,7 +76,7 @@ const TeamCard: React.FC<{ member: TeamMember; index: number }> = ({ member, ind
       <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-white/20 to-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"></div>
 
       {/* Image Container with Overlay */}
-      <div className="aspect-square overflow-hidden bg-surface-light relative rounded-2xl">
+      <div className="aspect-square overflow-hidden bg-surface-light relative rounded-t-2xl">
         <img
           src={member.image}
           alt={member.name}
@@ -88,14 +88,14 @@ const TeamCard: React.FC<{ member: TeamMember; index: number }> = ({ member, ind
         />
 
         {/* Animated Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-t-2xl"></div>
 
         {/* Shine Effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out rounded-2xl"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out rounded-t-2xl"></div>
       </div>
 
       {/* Researcher Description - Enhanced */}
-      <div className="relative p-6 text-center bg-surface-darkest/95 backdrop-blur-sm">
+      <div className="relative p-6 text-center bg-surface-darkest/95 backdrop-blur-sm rounded-b-2xl">
         {/* Animated Border */}
         <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-white via-white to-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
 
