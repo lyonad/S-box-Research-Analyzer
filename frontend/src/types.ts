@@ -30,9 +30,10 @@ export interface BICNLMetrics {
 }
 
 export interface BICSACMetrics {
-  average_deviation: number;
-  max_deviation: number;
-  min_deviation: number;
+  average_sac: number;
+  max_sac: number;
+  min_sac: number;
+  std_sac: number;
 }
 
 export interface LAPMetrics {
@@ -46,6 +47,38 @@ export interface DAPMetrics {
   average_dap: number;
 }
 
+export interface DifferentialUniformityMetrics {
+  max_du: number;
+  average_du: number;
+}
+
+export interface AlgebraicDegreeMetrics {
+  min: number;
+  max: number;
+  average: number;
+  degrees: number[];
+}
+
+export interface TransparencyOrderMetrics {
+  transparency_order: number;
+  max_correlation: number;
+  min_correlation: number;
+}
+
+export interface CorrelationImmunityMetrics {
+  min: number;
+  max: number;
+  average: number;
+  orders: number[];
+}
+
+export interface CycleStructureMetrics {
+  count: number;
+  max_length: number;
+  min_length: number;
+  fixed_points: number;
+}
+
 export interface AnalysisResults {
   sbox_name: string;
   nonlinearity: NonlinearityMetrics;
@@ -54,6 +87,11 @@ export interface AnalysisResults {
   bic_sac: BICSACMetrics;
   lap: LAPMetrics;
   dap: DAPMetrics;
+  differential_uniformity: DifferentialUniformityMetrics;
+  algebraic_degree: AlgebraicDegreeMetrics;
+  transparency_order: TransparencyOrderMetrics;
+  correlation_immunity: CorrelationImmunityMetrics;
+  cycle_structure: CycleStructureMetrics;
   analysis_time_ms: number;
 }
 
@@ -75,6 +113,8 @@ export interface MetricComparison {
   custom?: number;
   target?: number | string;
   unit?: string;
+  better?: 'higher' | 'lower' | 'closest' | 'closest_to_zero';
+  ideal?: number;
 }
 
 export interface EncryptRequest {

@@ -140,12 +140,13 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({ results, title, accentColor
           accentColor={accentColor}
           metrics={[
             { 
-              label: 'Avg Deviation', 
-              value: results.bic_sac.average_deviation.toFixed(5),
-              status: results.bic_sac.average_deviation < 0.01 ? 'good' : 'warning'
+              label: 'Average SAC', 
+              value: results.bic_sac.average_sac.toFixed(5),
+              target: '~0.5',
+              status: Math.abs(results.bic_sac.average_sac - 0.5) < 0.01 ? 'good' : 'warning'
             },
-            { label: 'Max Deviation', value: results.bic_sac.max_deviation.toFixed(5), status: 'info' },
-            { label: 'Min Deviation', value: results.bic_sac.min_deviation.toFixed(5), status: 'info' },
+            { label: 'Min SAC', value: results.bic_sac.min_sac.toFixed(5), status: 'info' },
+            { label: 'Max SAC', value: results.bic_sac.max_sac.toFixed(5), status: 'info' },
           ]}
         />
 
@@ -177,6 +178,95 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({ results, title, accentColor
               status: results.dap.max_dap < 0.05 ? 'good' : 'warning'
             },
             { label: 'Average DAP', value: results.dap.average_dap.toFixed(5), status: 'info' },
+          ]}
+        />
+
+        {/* Differential Uniformity */}
+        <MetricCard
+          title="Differential Uniformity"
+          icon="🔀"
+          accentColor={accentColor}
+          metrics={[
+            { 
+              label: 'Max DU', 
+              value: results.differential_uniformity.max_du,
+              target: '4 (AES)',
+              status: results.differential_uniformity.max_du <= 4 ? 'good' : 'warning'
+            },
+            { label: 'Average DU', value: results.differential_uniformity.average_du.toFixed(2), status: 'info' },
+          ]}
+        />
+
+        {/* Algebraic Degree */}
+        <MetricCard
+          title="Algebraic Degree"
+          icon="🔢"
+          accentColor={accentColor}
+          metrics={[
+            { 
+              label: 'Max', 
+              value: results.algebraic_degree.max,
+              target: '7 (AES)',
+              status: results.algebraic_degree.max >= 7 ? 'good' : 'warning'
+            },
+            { label: 'Min', value: results.algebraic_degree.min, status: 'info' },
+            { label: 'Average', value: results.algebraic_degree.average.toFixed(2), status: 'info' },
+          ]}
+        />
+
+        {/* Transparency Order */}
+        <MetricCard
+          title="Transparency Order"
+          icon="🔍"
+          accentColor={accentColor}
+          metrics={[
+            { 
+              label: 'TO', 
+              value: results.transparency_order.transparency_order.toFixed(5),
+              target: 'Lower is better',
+              status: results.transparency_order.transparency_order < 0.3 ? 'good' : 'warning'
+            },
+            { label: 'Max Correlation', value: results.transparency_order.max_correlation.toFixed(5), status: 'info' },
+            { label: 'Min Correlation', value: results.transparency_order.min_correlation.toFixed(5), status: 'info' },
+          ]}
+        />
+
+        {/* Correlation Immunity */}
+        <MetricCard
+          title="Correlation Immunity"
+          icon="🛡️"
+          accentColor={accentColor}
+          metrics={[
+            { 
+              label: 'Max Order', 
+              value: results.correlation_immunity.max,
+              target: 'Higher is better',
+              status: results.correlation_immunity.max >= 1 ? 'good' : 'info'
+            },
+            { label: 'Min Order', value: results.correlation_immunity.min, status: 'info' },
+            { label: 'Average', value: results.correlation_immunity.average.toFixed(2), status: 'info' },
+          ]}
+        />
+
+        {/* Cycle Structure (New) */}
+        <MetricCard
+          title="Cycle Structure"
+          icon="🔄"
+          accentColor={accentColor}
+          metrics={[
+            { 
+              label: 'Max Cycle', 
+              value: results.cycle_structure.max_length,
+              target: 'Max 256',
+              status: results.cycle_structure.max_length > 200 ? 'good' : 'warning'
+            },
+            { label: 'Cycle Count', value: results.cycle_structure.count, status: 'info' },
+            { 
+              label: 'Fixed Points', 
+              value: results.cycle_structure.fixed_points, 
+              target: '0',
+              status: results.cycle_structure.fixed_points === 0 ? 'good' : 'warning'
+            },
           ]}
         />
       </div>

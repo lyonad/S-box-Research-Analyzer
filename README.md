@@ -16,11 +16,12 @@ This application allows researchers to:
 **Status:** ✅ **FULLY VERIFIED AND WORKING**
 
 The implementation has been thoroughly verified against the research paper specifications:
-- ✅ All 34 verification tests passed
-- ✅ K44 S-box metrics match paper exactly (NL=112, SAC=0.50073, BIC-NL=112, DAP=0.015625)
+- ✅ All 38 verification tests passed (updated with 4 new metrics)
+- ✅ K44 S-box metrics match paper exactly (NL=112, SAC=0.50073, BIC-NL=112, DAP=0.015625, DU=4, AD=7)
 - ✅ All mathematical operations verified correct
 - ✅ All edge cases handled properly
 - ✅ Complete workflow tested and working
+- ✅ 10 comprehensive cryptographic metrics implemented
 
 ## 🏗️ Architecture
 
@@ -29,13 +30,17 @@ The implementation has been thoroughly verified against the research paper speci
   - Uses generator 3 (primitive element) for table generation
   - Efficient lookup tables for multiplication and inversion
 - **S-box Generation**: Using K44 affine matrix with constant `C_AES` (0x63)
-- **Cryptographic Tests**:
+- **Cryptographic Tests** (10 comprehensive metrics):
   - Nonlinearity (NL) - Target: 112 ✅ Verified
   - Strict Avalanche Criterion (SAC) - Target: ~0.5 ✅ Verified (0.50073)
   - Bit Independence Criterion - Nonlinearity (BIC-NL) ✅ Verified (112)
   - Bit Independence Criterion - SAC (BIC-SAC)
   - Linear Approximation Probability (LAP)
   - Differential Approximation Probability (DAP) ✅ Verified (0.015625)
+  - **Differential Uniformity (DU)** ✅ Verified (4)
+  - **Algebraic Degree (AD)** ✅ Verified (7)
+  - **Transparency Order (TO)** ✅ Calculated (0.06128)
+  - **Correlation Immunity (CI)** ✅ Calculated
 
 ### Frontend (React/TypeScript)
 - Modern dashboard with professional academic design
@@ -167,6 +172,30 @@ Measures independence between output bit functions.
 - **DAP**: Differential Approximation Probability - resistance to differential attacks
 - **K44 DAP**: 0.015625 ✅ (Matches paper exactly)
 - Lower values indicate better security
+
+#### Differential Uniformity (DU)
+Measures the maximum value in the Difference Distribution Table (DDT).
+- Target: 4 (AES standard)
+- Lower values indicate better resistance to differential cryptanalysis
+- DU determines the probability of differential characteristics
+
+#### Algebraic Degree (AD)
+Measures the degree of the highest term in polynomial representation.
+- Target: 7 (AES standard)
+- Higher degree means better resistance to algebraic attacks
+- Calculated for each output bit function using ANF (Algebraic Normal Form)
+
+#### Transparency Order (TO)
+Measures the average correlation between input and output bits.
+- Target: Lower is better
+- Indicates the confusion property strength
+- Lower transparency order means better cryptographic properties
+
+#### Correlation Immunity (CI)
+Measures statistical independence of output from subsets of input variables.
+- Target: Higher order is better
+- m-th order CI means output is independent of any m input variables
+- Determined using Walsh-Hadamard spectrum analysis
 
 ### 6. Comparison Dashboard
 - Side-by-side metric comparison
@@ -388,9 +417,12 @@ This project is for academic and research purposes.
   - https://link.springer.com/article/10.1007/s11071-024-10414-3
   - Published: 08 October 2024
   - DOI: https://doi.org/10.1007/s11071-024-10414-3
+- **Cryptographic Metrics Documentation**: See [CRYPTOGRAPHIC_METRICS.md](CRYPTOGRAPHIC_METRICS.md) for detailed information about all 10 metrics
 - AES Standard (FIPS 197)
 - Galois Field Theory in Cryptography
 - The Design of Rijndael by Joan Daemen and Vincent Rijmen
+- Boolean Functions for Cryptography (Claude Carlet)
+- Correlation-Immunity and Nonlinearity (Siegenthaler, 1984)
 
 ## 👥 Authors
 
@@ -407,3 +439,5 @@ Created as a cryptographic research demonstration tool.
 **Note**: This tool is for research and educational purposes. The K44 S-box is an experimental modification and should not be used in production systems without extensive peer review and cryptanalysis.
 
 **Status**: ✅ Fully verified and working correctly according to the research paper specifications.
+
+**Cryptographic Strength**: All 10 comprehensive metrics implemented and tested. See [CRYPTOGRAPHIC_METRICS.md](CRYPTOGRAPHIC_METRICS.md) for detailed analysis.

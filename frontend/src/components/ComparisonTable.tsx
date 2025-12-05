@@ -12,28 +12,63 @@ interface ComparisonTableProps {
 
 const ComparisonTable: React.FC<ComparisonTableProps> = ({ comparisons }) => {
   const hasCustom = comparisons.length > 0 && comparisons[0].custom !== undefined;
+  const EPSILON = 1e-9;
 
-  const getBetterValue = (k44: number, aes: number, custom?: number, lowerIsBetter: boolean = false) => {
-    const values = [
-      { name: 'k44', value: k44 },
-      { name: 'aes', value: aes },
+  const determineWinner = (comparison: MetricComparison) => {
+    const entries = [
+      { name: 'k44', value: comparison.k44 },
+      { name: 'aes', value: comparison.aes },
     ];
-    if (custom !== undefined) {
-      values.push({ name: 'custom', value: custom });
+
+    if (typeof comparison.custom === 'number' && !Number.isNaN(comparison.custom)) {
+      entries.push({ name: 'custom', value: comparison.custom });
     }
 
-    if (lowerIsBetter) {
-      values.sort((a, b) => a.value - b.value);
-    } else {
-      values.sort((a, b) => b.value - a.value);
-    }
+    const validEntries = entries.filter(entry => typeof entry.value === 'number' && !Number.isNaN(entry.value));
 
-    // Check if all values are equal
-    if (values.every(v => v.value === values[0].value)) {
+    if (validEntries.length === 0) {
       return 'equal';
     }
 
-    return values[0].name;
+    // If all entries are equal within EPSILON, it's a tie
+    const allEqual = validEntries.every(
+      (entry) => Math.abs(entry.value as number - (validEntries[0].value as number)) < EPSILON
+    );
+    if (allEqual) {
+      return 'equal';
+    }
+
+    const mode = comparison.better ?? 'higher';
+
+    if (mode === 'closest' && typeof comparison.ideal === 'number') {
+      const scored = validEntries.map(entry => ({
+        name: entry.name,
+        score: Math.abs((entry.value as number) - comparison.ideal!),
+      }));
+      const minScore = Math.min(...scored.map(entry => entry.score));
+      const best = scored.filter(entry => Math.abs(entry.score - minScore) < EPSILON);
+      return best.length === 1 ? best[0].name : 'equal';
+    }
+
+    if (mode === 'closest_to_zero') {
+      const scored = validEntries.map(entry => ({
+        name: entry.name,
+        score: Math.abs(entry.value as number),
+      }));
+      const minScore = Math.min(...scored.map(entry => entry.score));
+      const best = scored.filter(entry => Math.abs(entry.score - minScore) < EPSILON);
+      return best.length === 1 ? best[0].name : 'equal';
+    }
+
+    if (mode === 'lower') {
+      const minValue = Math.min(...validEntries.map(entry => entry.value as number));
+      const best = validEntries.filter(entry => Math.abs((entry.value as number) - minValue) < EPSILON);
+      return best.length === 1 ? best[0].name : 'equal';
+    }
+
+    const maxValue = Math.max(...validEntries.map(entry => entry.value as number));
+    const best = validEntries.filter(entry => Math.abs((entry.value as number) - maxValue) < EPSILON);
+    return best.length === 1 ? best[0].name : 'equal';
   };
 
   return (
@@ -62,10 +97,7 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({ comparisons }) => {
             </thead>
             <tbody>
               {comparisons.map((comparison, index) => {
-                const lowerIsBetter = comparison.name.includes('LAP') || 
-                                     comparison.name.includes('DAP') || 
-                                     comparison.name.includes('Deviation');
-                const winner = getBetterValue(comparison.k44, comparison.aes, comparison.custom, lowerIsBetter);
+                const winner = determineWinner(comparison);
                 
                 return (
                   <tr 
