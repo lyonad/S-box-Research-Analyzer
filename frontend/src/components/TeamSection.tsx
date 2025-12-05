@@ -14,7 +14,7 @@ interface TeamMember {
 const teamMembers: TeamMember[] = [
   {
     name: 'Riski Yuniar Pratama',
-    role: 'Noob Cryptographer | 2304130134',
+    role: 'Master Cryptographer | 2304130134',
     image: '/images/Person 1.jpg',
   },
   {
