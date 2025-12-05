@@ -12,6 +12,11 @@ This script verifies:
 """
 
 import sys
+import io
+
+# Set UTF-8 encoding for output to handle special characters
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+
 if 'galois_field' in sys.modules:
     del sys.modules['galois_field']
 if 'sbox_generator' in sys.modules:
@@ -23,7 +28,10 @@ from galois_field import GF256, affine_transform
 from sbox_generator import SBoxGenerator, K44_MATRIX, AES_MATRIX, C_AES
 from cryptographic_tests import (
     calculate_nonlinearity, calculate_sac, calculate_bic_nl,
-    calculate_bic_sac, calculate_lap, calculate_dap, analyze_sbox
+    calculate_bic_sac, calculate_lap, calculate_dap, 
+    calculate_differential_uniformity, calculate_algebraic_degree,
+    calculate_transparency_order, calculate_correlation_immunity,
+    analyze_sbox
 )
 
 print("=" * 80)
@@ -232,6 +240,18 @@ if isinstance(bic_nl_result, dict) and 'average' in bic_nl_result:
 else:
     test_fail("BIC-NL", "Invalid result format")
 
+# Test 4.3b: BIC-SAC calculation (New)
+bic_sac_result = calculate_bic_sac(k44_sbox)
+if isinstance(bic_sac_result, dict) and 'average_sac' in bic_sac_result:
+    avg = bic_sac_result['average_sac']
+    # Paper value: 0.50237
+    if abs(avg - 0.50237) < 0.001:
+        test_pass(f"BIC-SAC: Calculation correct (SAC={avg:.5f} ≈ 0.50237)")
+    else:
+        test_warn("BIC-SAC", f"got {avg:.5f}, expected 0.50237")
+else:
+    test_fail("BIC-SAC", "Invalid result format")
+
 # Test 4.4: DAP calculation
 dap_result = calculate_dap(k44_sbox)
 if isinstance(dap_result, dict) and 'max_dap' in dap_result:
@@ -244,12 +264,47 @@ else:
 
 # Test 4.5: Complete analysis
 analysis = analyze_sbox(k44_sbox)
-required_keys = ['nonlinearity', 'sac', 'bic_nl', 'bic_sac', 'lap', 'dap']
+required_keys = ['nonlinearity', 'sac', 'bic_nl', 'bic_sac', 'lap', 'dap', 
+                 'differential_uniformity', 'algebraic_degree', 'transparency_order', 'correlation_immunity']
 if all(key in analysis for key in required_keys):
-    test_pass("Complete analysis: All metrics calculated")
+    test_pass("Complete analysis: All 10 metrics calculated")
 else:
     missing = [k for k in required_keys if k not in analysis]
     test_fail("Complete analysis", f"Missing keys: {missing}")
+
+# Test 4.6: Differential Uniformity
+du_result = analysis.get('differential_uniformity', {})
+if isinstance(du_result, dict) and 'max_du' in du_result:
+    if du_result['max_du'] <= 6:  # Reasonable threshold
+        test_pass(f"Differential Uniformity: Max DU={du_result['max_du']} (reasonable)")
+    else:
+        test_warn("Differential Uniformity", f"Max DU={du_result['max_du']}, higher than expected")
+else:
+    test_fail("Differential Uniformity", "Invalid result format")
+
+# Test 4.7: Algebraic Degree
+ad_result = analysis.get('algebraic_degree', {})
+if isinstance(ad_result, dict) and 'max' in ad_result:
+    if ad_result['max'] >= 6:  # Should be close to 7
+        test_pass(f"Algebraic Degree: Max={ad_result['max']} (good)")
+    else:
+        test_warn("Algebraic Degree", f"Max={ad_result['max']}, lower than expected")
+else:
+    test_fail("Algebraic Degree", "Invalid result format")
+
+# Test 4.8: Transparency Order
+to_result = analysis.get('transparency_order', {})
+if isinstance(to_result, dict) and 'transparency_order' in to_result:
+    test_pass(f"Transparency Order: TO={to_result['transparency_order']:.5f} (calculated)")
+else:
+    test_fail("Transparency Order", "Invalid result format")
+
+# Test 4.9: Correlation Immunity
+ci_result = analysis.get('correlation_immunity', {})
+if isinstance(ci_result, dict) and 'max' in ci_result:
+    test_pass(f"Correlation Immunity: Max order={ci_result['max']} (calculated)")
+else:
+    test_fail("Correlation Immunity", "Invalid result format")
 
 # ============================================================================
 # 5. PAPER COMPLIANCE VERIFICATION
@@ -282,6 +337,8 @@ paper_metrics = {
     'nonlinearity': 112,
     'sac': 0.50073,
     'bic_nl': 112,
+    'bic_sac': 0.50237,
+    'lap': 0.0625,
     'dap': 0.015625
 }
 
@@ -290,13 +347,17 @@ actual_metrics = {
     'nonlinearity': k44_analysis['nonlinearity']['average'],
     'sac': k44_analysis['sac']['average'],
     'bic_nl': k44_analysis['bic_nl']['average'],
+    'bic_sac': k44_analysis['bic_sac']['average_sac'],
+    'lap': k44_analysis['lap']['max_bias'],  # Compare bias
     'dap': k44_analysis['dap']['max_dap']
 }
 
 for metric, expected in paper_metrics.items():
     actual = actual_metrics[metric]
     diff = abs(actual - expected)
-    tolerance = 0.001 if metric == 'sac' else 0.1
+    # Strict tolerance for SAC/BIC-SAC/DAP, looser for NL/BIC-NL (integers)
+    tolerance = 0.001
+    
     if diff <= tolerance:
         test_pass(f"Paper metric {metric}: Matches (expected {expected}, got {actual:.6f})")
     else:

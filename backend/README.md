@@ -13,6 +13,10 @@ Python FastAPI backend for cryptographic S-box analysis.
   - Bit Independence Criterion - SAC (BIC-SAC)
   - Linear Approximation Probability (LAP)
   - Differential Approximation Probability (DAP)
+  - Differential Uniformity (DU)
+  - Algebraic Degree (AD)
+  - Transparency Order (TO)
+  - Correlation Immunity (CI)
 
 ## Installation
 

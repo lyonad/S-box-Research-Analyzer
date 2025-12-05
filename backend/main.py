@@ -64,6 +64,11 @@ class AnalysisResponse(BaseModel):
     bic_sac: Dict
     lap: Dict
     dap: Dict
+    differential_uniformity: Dict
+    algebraic_degree: Dict
+    transparency_order: Dict
+    correlation_immunity: Dict
+    cycle_structure: Dict
     analysis_time_ms: float
 
 
@@ -243,6 +248,11 @@ def analyze(request: SBoxAnalyzeRequest):
             bic_sac=results["bic_sac"],
             lap=results["lap"],
             dap=results["dap"],
+            differential_uniformity=results["differential_uniformity"],
+            algebraic_degree=results["algebraic_degree"],
+            transparency_order=results["transparency_order"],
+            correlation_immunity=results["correlation_immunity"],
+            cycle_structure=results["cycle_structure"],
             analysis_time_ms=round(analysis_time, 2)
         )
     

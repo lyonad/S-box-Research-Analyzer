@@ -6,6 +6,10 @@ Cryptographic strength tests for S-boxes:
 - Bit Independence Criterion - SAC (BIC-SAC)
 - Linear Approximation Probability (LAP)
 - Differential Approximation Probability (DAP)
+- Differential Uniformity (DU)
+- Algebraic Degree (AD)
+- Transparency Order (TO)
+- Correlation Immunity (CI)
 """
 
 import numpy as np
@@ -171,40 +175,48 @@ def calculate_bic_sac(sbox: List[int]) -> Dict[str, float]:
     """
     Calculate Bit Independence Criterion - SAC (BIC-SAC)
     
+    Computes the Strict Avalanche Criterion for the XOR sum of all pairs 
+    of output bits (f_i ⊕ f_j).
+    Target: 0.5 (ideally 0.50237 as per K44 paper result)
+    
     Args:
         sbox: S-box as list of 256 values
     
     Returns:
-        Dictionary with BIC-SAC statistics
+        Dictionary with BIC-SAC statistics (average SAC of XOR pairs)
     """
-    # For each input bit and pair of output bits
-    deviations = []
+    sac_values = []
     
-    for input_bit in range(8):
-        for out_i in range(8):
-            for out_j in range(out_i + 1, 8):
-                count = 0
+    # For each pair of output bits (j, k)
+    for j in range(8):
+        for k in range(j + 1, 8):
+            # Calculate SAC for function h = f_j ⊕ f_k
+            # For each input bit i
+            for i in range(8):
+                change_count = 0
                 
                 for x in range(256):
-                    x_flipped = x ^ (1 << input_bit)
+                    x_flipped = x ^ (1 << i)
                     
-                    # Check if both output bits changed
+                    # Get output difference
                     diff = sbox[x] ^ sbox[x_flipped]
-                    bit_i_changed = (diff >> out_i) & 1
-                    bit_j_changed = (diff >> out_j) & 1
                     
-                    # Both should change independently
-                    if bit_i_changed and bit_j_changed:
-                        count += 1
+                    # Check if (bit j) XOR (bit k) changed
+                    # (d_j ⊕ d_k) == 1 iff exactly one of them changed
+                    d_j = (diff >> j) & 1
+                    d_k = (diff >> k) & 1
+                    
+                    if d_j ^ d_k:
+                        change_count += 1
                 
-                prob = count / 256.0
-                deviation = abs(prob - 0.25)  # Ideal is 0.25
-                deviations.append(deviation)
+                prob = change_count / 256.0
+                sac_values.append(prob)
     
     return {
-        "average_deviation": sum(deviations) / len(deviations),
-        "max_deviation": max(deviations),
-        "min_deviation": min(deviations)
+        "average_sac": sum(sac_values) / len(sac_values),
+        "min_sac": min(sac_values),
+        "max_sac": max(sac_values),
+        "std_sac": float(np.std(sac_values))
     }
 
 
@@ -291,6 +303,246 @@ def calculate_dap(sbox: List[int]) -> Dict[str, float]:
     }
 
 
+def calculate_differential_uniformity(sbox: List[int]) -> Dict[str, float]:
+    """
+    Calculate Differential Uniformity (DU)
+    
+    DU is the maximum value in the Difference Distribution Table (DDT),
+    excluding the row where input difference is 0.
+    Lower values indicate better resistance to differential cryptanalysis.
+    
+    For AES S-box, DU = 4
+    
+    Args:
+        sbox: S-box as list of 256 values
+    
+    Returns:
+        Dictionary with DU statistics
+    """
+    # Differential distribution table
+    ddt = [[0 for _ in range(256)] for _ in range(256)]
+    
+    for x in range(256):
+        for delta_in in range(256):
+            x_prime = x ^ delta_in
+            delta_out = sbox[x] ^ sbox[x_prime]
+            ddt[delta_in][delta_out] += 1
+    
+    # Find maximum (excluding delta_in = 0)
+    max_du = 0
+    du_values = []
+    
+    for delta_in in range(1, 256):
+        for delta_out in range(256):
+            val = ddt[delta_in][delta_out]
+            if val > 0:
+                du_values.append(val)
+            if val > max_du:
+                max_du = val
+    
+    return {
+        "max_du": max_du,
+        "average_du": sum(du_values) / len(du_values) if du_values else 0
+    }
+
+
+def calculate_algebraic_degree(sbox: List[int]) -> Dict[str, int]:
+    """
+    Calculate Algebraic Degree (AD) of S-box
+    
+    The algebraic degree is the degree of the highest degree term in the
+    polynomial representation of the S-box component functions.
+    
+    For AES S-box, AD = 7
+    Higher degree means better resistance to algebraic attacks.
+    
+    Args:
+        sbox: S-box as list of 256 values
+    
+    Returns:
+        Dictionary with algebraic degree for each output bit
+    """
+    def anf_transform(truth_table: List[int]) -> List[int]:
+        """Convert truth table to Algebraic Normal Form (ANF)"""
+        n = len(truth_table)
+        anf = list(truth_table)
+        
+        # Möbius transform
+        h = 1
+        while h < n:
+            for i in range(n):
+                if (i & h) == 0:
+                    anf[i + h] ^= anf[i]
+            h <<= 1
+        
+        return anf
+    
+    def get_degree(anf: List[int]) -> int:
+        """Get degree of polynomial from ANF"""
+        max_degree = 0
+        for i, coeff in enumerate(anf):
+            if coeff != 0:
+                degree = hamming_weight(i)
+                if degree > max_degree:
+                    max_degree = degree
+        return max_degree
+    
+    degrees = []
+    
+    # For each output bit
+    for bit_pos in range(8):
+        # Extract Boolean function for this output bit
+        truth_table = [(sbox[x] >> bit_pos) & 1 for x in range(256)]
+        
+        # Convert to ANF
+        anf = anf_transform(truth_table)
+        
+        # Get degree
+        degree = get_degree(anf)
+        degrees.append(degree)
+    
+    return {
+        "min": min(degrees),
+        "max": max(degrees),
+        "average": sum(degrees) / len(degrees),
+        "degrees": degrees
+    }
+
+
+def calculate_transparency_order(sbox: List[int]) -> Dict[str, float]:
+    """
+    Calculate Transparency Order (TO)
+    
+    Transparency Order measures the average correlation between input and output bits.
+    Lower transparency order indicates better confusion property.
+    
+    TO is calculated as the sum of absolute values of autocorrelation coefficients
+    divided by the number of coefficients.
+    
+    Args:
+        sbox: S-box as list of 256 values
+    
+    Returns:
+        Dictionary with transparency order statistics
+    """
+    autocorrelation_values = []
+    
+    # For each pair of input bit and output bit
+    for input_bit in range(8):
+        for output_bit in range(8):
+            correlation = 0
+            
+            # Calculate correlation
+            for x in range(256):
+                input_val = (x >> input_bit) & 1
+                output_val = (sbox[x] >> output_bit) & 1
+                
+                # Convert to bipolar (-1, 1)
+                input_bipolar = 1 - 2 * input_val
+                output_bipolar = 1 - 2 * output_val
+                
+                correlation += input_bipolar * output_bipolar
+            
+            # Normalize
+            correlation = abs(correlation) / 256.0
+            autocorrelation_values.append(correlation)
+    
+    # Transparency order
+    to = sum(autocorrelation_values) / len(autocorrelation_values)
+    
+    return {
+        "transparency_order": to,
+        "max_correlation": max(autocorrelation_values),
+        "min_correlation": min(autocorrelation_values)
+    }
+
+
+def calculate_correlation_immunity(sbox: List[int]) -> Dict[str, int]:
+    """
+    Calculate Correlation Immunity (CI)
+    
+    A Boolean function is m-th order correlation immune if its output is
+    statistically independent of any m input variables.
+    
+    CI is determined by examining the Walsh-Hadamard spectrum.
+    The order of correlation immunity is the maximum m such that
+    W(α) = 0 for all α with Hamming weight ≤ m.
+    
+    Args:
+        sbox: S-box as list of 256 values
+    
+    Returns:
+        Dictionary with correlation immunity order for each output bit
+    """
+    ci_orders = []
+    
+    # For each output bit
+    for bit_pos in range(8):
+        # Extract Boolean function for this output bit
+        truth_table = [(sbox[x] >> bit_pos) & 1 for x in range(256)]
+        
+        # Convert to bipolar form (-1, 1)
+        bipolar = [1 - 2 * b for b in truth_table]
+        
+        # Compute Walsh-Hadamard spectrum
+        spectrum = walsh_hadamard_transform(bipolar)
+        
+        # Find correlation immunity order
+        ci_order = 0
+        for weight in range(1, 9):  # Check weights 1 to 8
+            all_zero = True
+            for i in range(256):
+                if hamming_weight(i) == weight:
+                    if spectrum[i] != 0:
+                        all_zero = False
+                        break
+            
+            if all_zero:
+                ci_order = weight
+            else:
+                break
+        
+        ci_orders.append(ci_order)
+    
+    return {
+        "min": min(ci_orders),
+        "max": max(ci_orders),
+        "average": sum(ci_orders) / len(ci_orders),
+        "orders": ci_orders
+    }
+
+
+def calculate_cycle_structure(sbox: List[int]) -> Dict[str, int]:
+    """
+    Calculate cycle structure of the S-box permutation
+    
+    Args:
+        sbox: S-box as list of 256 values
+    
+    Returns:
+        Dictionary with cycle statistics
+    """
+    visited = [False] * 256
+    cycles = []
+    
+    for i in range(256):
+        if not visited[i]:
+            curr = i
+            length = 0
+            while not visited[curr]:
+                visited[curr] = True
+                curr = sbox[curr]
+                length += 1
+            cycles.append(length)
+    
+    return {
+        "count": len(cycles),
+        "max_length": max(cycles) if cycles else 0,
+        "min_length": min(cycles) if cycles else 0,
+        "fixed_points": sum(1 for c in cycles if c == 1)
+    }
+
+
 def analyze_sbox(sbox: List[int]) -> Dict:
     """
     Perform complete cryptographic analysis of S-box
@@ -309,7 +561,12 @@ def analyze_sbox(sbox: List[int]) -> Dict:
         "bic_nl": calculate_bic_nl(sbox),
         "bic_sac": calculate_bic_sac(sbox),
         "lap": calculate_lap(sbox),
-        "dap": calculate_dap(sbox)
+        "dap": calculate_dap(sbox),
+        "differential_uniformity": calculate_differential_uniformity(sbox),
+        "algebraic_degree": calculate_algebraic_degree(sbox),
+        "transparency_order": calculate_transparency_order(sbox),
+        "correlation_immunity": calculate_correlation_immunity(sbox),
+        "cycle_structure": calculate_cycle_structure(sbox)
     }
     
     return results
@@ -335,9 +592,9 @@ def print_analysis(results: Dict, name: str = "S-box"):
     print(f"   Max: {results['bic_nl']['max']}")
     print(f"   Avg: {results['bic_nl']['average']:.2f}")
     
-    print(f"\n4. BIC - SAC")
-    print(f"   Avg Deviation: {results['bic_sac']['average_deviation']:.5f}")
-    print(f"   Max Deviation: {results['bic_sac']['max_deviation']:.5f}")
+    print(f"\n4. BIC - SAC (Target: ~0.5)")
+    print(f"   Avg SAC: {results['bic_sac']['average_sac']:.5f}")
+    print(f"   Min SAC: {results['bic_sac']['min_sac']:.5f}")
     
     print(f"\n5. Linear Approximation Probability (LAP)")
     print(f"   Max LAP: {results['lap']['max_lap']:.5f}")
@@ -345,6 +602,24 @@ def print_analysis(results: Dict, name: str = "S-box"):
     
     print(f"\n6. Differential Approximation Probability (DAP)")
     print(f"   Max DAP: {results['dap']['max_dap']:.5f}")
+    
+    print(f"\n7. Differential Uniformity (DU) - Target: 4 (AES)")
+    print(f"   Max DU: {results['differential_uniformity']['max_du']}")
+    print(f"   Avg DU: {results['differential_uniformity']['average_du']:.2f}")
+    
+    print(f"\n8. Algebraic Degree (AD) - Target: 7 (AES)")
+    print(f"   Min: {results['algebraic_degree']['min']}")
+    print(f"   Max: {results['algebraic_degree']['max']}")
+    print(f"   Avg: {results['algebraic_degree']['average']:.2f}")
+    
+    print(f"\n9. Transparency Order (TO) - Lower is better")
+    print(f"   TO: {results['transparency_order']['transparency_order']:.5f}")
+    print(f"   Max Correlation: {results['transparency_order']['max_correlation']:.5f}")
+    
+    print(f"\n10. Correlation Immunity (CI) - Higher is better")
+    print(f"   Min Order: {results['correlation_immunity']['min']}")
+    print(f"   Max Order: {results['correlation_immunity']['max']}")
+    print(f"   Avg Order: {results['correlation_immunity']['average']:.2f}")
     
     print('=' * 60)
 
