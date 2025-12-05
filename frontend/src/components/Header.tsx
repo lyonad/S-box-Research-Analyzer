@@ -45,24 +45,24 @@ const Header: React.FC<HeaderProps> = ({ backendStatus }) => {
     switch (backendStatus) {
       case 'active':
         return {
-          color: 'bg-white',
+          color: 'bg-green-400',
           text: 'Active',
-          textColor: 'text-white',
+          textColor: 'text-green-300',
           pulse: true,
         };
       case 'inactive':
         return {
-          color: 'bg-accent-warning',
+          color: 'bg-red-500',
           text: 'Inactive',
-          textColor: 'text-accent-warning',
+          textColor: 'text-red-400',
           pulse: false,
         };
       case 'checking':
       default:
         return {
-          color: 'bg-accent-warning',
+          color: 'bg-yellow-400',
           text: 'Checking...',
-          textColor: 'text-accent-warning',
+          textColor: 'text-yellow-300',
           pulse: true,
         };
     }
