@@ -3,7 +3,7 @@
  * Enhanced with amazing card effects
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useRef } from 'react';
 
 interface TeamMember {
   name: string;
@@ -14,7 +14,7 @@ interface TeamMember {
 const teamMembers: TeamMember[] = [
   {
     name: 'Riski Yuniar Pratama',
-    role: 'Master Cryptographer | 2304130134',
+    role: 'Noob Cryptographer | 2304130134',
     image: '/images/Person 1.jpg',
   },
   {
@@ -34,8 +34,7 @@ const teamMembers: TeamMember[] = [
   },
 ];
 
-const TeamCard: React.FC<{ member: TeamMember; index: number }> = ({ member, index }) => {
-  const [isHovered, setIsHovered] = useState(false);
+const TeamCard: React.FC<{ member: TeamMember }> = ({ member }) => {
   const cardRef = useRef<HTMLDivElement>(null);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -57,7 +56,6 @@ const TeamCard: React.FC<{ member: TeamMember; index: number }> = ({ member, ind
   const handleMouseLeave = () => {
     if (!cardRef.current) return;
     cardRef.current.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px)';
-    setIsHovered(false);
   };
 
   return (
@@ -69,7 +67,6 @@ const TeamCard: React.FC<{ member: TeamMember; index: number }> = ({ member, ind
         transition: 'transform 0.3s ease-out',
       }}
       onMouseMove={handleMouseMove}
-      onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={handleMouseLeave}
     >
       {/* Animated Background Gradient */}
@@ -140,7 +137,7 @@ const TeamSection: React.FC = () => {
               className="animate-fade-in-up"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
-              <TeamCard member={member} index={index} />
+              <TeamCard member={member} />
             </div>
           ))}
         </div>

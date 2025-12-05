@@ -23,7 +23,11 @@ export const apiService = {
     customMatrix?: number[], 
     customConstant?: number
   ): Promise<SBox> {
-    const requestBody: any = {};
+    const requestBody: {
+      use_k44?: boolean;
+      custom_matrix?: number[];
+      constant?: number;
+    } = {};
     
     // Always send custom matrix if provided (for K43, K45, variations, or truly custom)
     // Always send constant if provided (for custom constant values)
@@ -71,7 +75,7 @@ export const apiService = {
   /**
    * Get matrix information
    */
-  async getMatrixInfo(): Promise<any> {
+  async getMatrixInfo(): Promise<Record<string, unknown>> {
     const response = await api.get('/matrix-info');
     return response.data;
   },
@@ -79,7 +83,7 @@ export const apiService = {
   /**
    * Health check
    */
-  async healthCheck(): Promise<any> {
+  async healthCheck(): Promise<{ status: string; service: string }> {
     const response = await api.get('/health');
     return response.data;
   },

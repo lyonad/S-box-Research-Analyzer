@@ -31,6 +31,18 @@ const EncryptionPanel: React.FC<EncryptionPanelProps> = ({
     time: number;
   } | null>(null);
 
+  const extractErrorMessage = (err: unknown, fallback: string): string => {
+    if (
+      err &&
+      typeof err === 'object' &&
+      'response' in err &&
+      typeof (err as { response?: { data?: { detail?: unknown } } }).response?.data?.detail === 'string'
+    ) {
+      return (err as { response?: { data?: { detail?: string } } }).response?.data?.detail ?? fallback;
+    }
+    return fallback;
+  };
+
   const handleEncrypt = async () => {
     if (!plaintext.trim()) {
       setError('Please enter plaintext to encrypt');
@@ -63,8 +75,8 @@ const EncryptionPanel: React.FC<EncryptionPanelProps> = ({
         sboxType: response.sbox_type,
         time: response.encryption_time_ms,
       });
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Encryption failed');
+    } catch (err: unknown) {
+      setError(extractErrorMessage(err, 'Encryption failed'));
       console.error('Encryption error:', err);
     } finally {
       setLoading(false);
@@ -103,8 +115,8 @@ const EncryptionPanel: React.FC<EncryptionPanelProps> = ({
         sboxType: response.sbox_type,
         time: response.decryption_time_ms,
       });
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Decryption failed');
+    } catch (err: unknown) {
+      setError(extractErrorMessage(err, 'Decryption failed'));
       console.error('Decryption error:', err);
     } finally {
       setLoading(false);

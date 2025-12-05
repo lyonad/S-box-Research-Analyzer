@@ -7,6 +7,29 @@ export interface SBox {
   matrix_used?: string;
   constant?: number;
   generation_time_ms?: number;
+  validation?: SBoxValidationResult;
+}
+
+export interface BitBalance {
+  bit: number;
+  ones: number;
+  zeros: number;
+  expected: number;
+}
+
+export interface DuplicateValueInfo {
+  value: number;
+  count: number;
+}
+
+export interface SBoxValidationResult {
+  is_balanced: boolean;
+  is_bijective: boolean;
+  is_valid: boolean;
+  unique_values: number;
+  bit_balance: BitBalance[];
+  duplicate_values: DuplicateValueInfo[];
+  missing_values: number[];
 }
 
 export interface NonlinearityMetrics {
@@ -102,6 +125,9 @@ export interface ComparisonData {
   k44_analysis: Omit<AnalysisResults, 'sbox_name' | 'analysis_time_ms'>;
   aes_analysis: Omit<AnalysisResults, 'sbox_name' | 'analysis_time_ms'>;
   custom_analysis?: Omit<AnalysisResults, 'sbox_name' | 'analysis_time_ms'> | null;
+  k44_validation: SBoxValidationResult;
+  aes_validation: SBoxValidationResult;
+  custom_validation?: SBoxValidationResult | null;
   generation_time_ms: number;
   analysis_time_ms: number;
 }

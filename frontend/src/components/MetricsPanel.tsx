@@ -6,6 +6,18 @@
 import React from 'react';
 import { AnalysisResults } from '../types';
 
+const ACCENT_GRADIENTS: Record<string, string> = {
+  blue: 'from-sky-400/80 via-blue-500/80 to-indigo-500/70',
+  purple: 'from-violet-400/80 via-fuchsia-500/80 to-purple-600/70',
+  pink: 'from-rose-400/80 via-pink-500/80 to-red-500/70',
+  green: 'from-emerald-400/80 via-teal-500/80 to-green-500/70',
+  orange: 'from-amber-400/80 via-orange-500/80 to-red-500/70',
+  grey: 'from-slate-400/80 via-gray-500/80 to-slate-600/70',
+};
+
+const getAccentGradient = (key?: string) =>
+  (key && ACCENT_GRADIENTS[key]) || ACCENT_GRADIENTS.blue;
+
 interface MetricsPanelProps {
   results: AnalysisResults;
   title: string;
@@ -32,10 +44,16 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, icon, metrics, accentCol
     }
   };
 
+  const accentGradient = getAccentGradient(accentColor);
+
   return (
     <div className="glass-effect rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-text-primary/10">
       <div className="flex items-center mb-3 sm:mb-5 pb-3 sm:pb-4 border-b border-text-primary/20">
-        {icon && <span className="text-2xl sm:text-3xl mr-2 sm:mr-3">{icon}</span>}
+        {icon && (
+          <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${accentGradient} flex items-center justify-center mr-3`}>
+            <span className="text-xl text-white">{icon}</span>
+          </div>
+        )}
         <h4 className="font-subheading text-base sm:text-lg md:text-xl text-white">{title}</h4>
       </div>
       
@@ -79,7 +97,7 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({ results, title, accentColor
     <div className="w-full">
       <div className="mb-4 sm:mb-6 md:mb-8">
         <h3 className="font-subheading text-xl sm:text-2xl md:text-3xl text-white mb-2">{title}</h3>
-        <div className="w-16 sm:w-20 md:w-24 h-1 bg-gradient-primary mb-2 sm:mb-3"></div>
+        <div className={`w-16 sm:w-20 md:w-24 h-1 bg-gradient-to-r ${getAccentGradient(accentColor)} mb-2 sm:mb-3`}></div>
         <p className="font-body text-xs sm:text-sm text-text-primary">
           Analysis: {(results.analysis_time_ms / 1000).toFixed(2)}s
         </p>

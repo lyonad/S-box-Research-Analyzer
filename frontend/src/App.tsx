@@ -11,13 +11,16 @@ import TeamSection from './components/TeamSection';
 import ControlPanel from './components/ControlPanel';
 import ParameterPanel from './components/ParameterPanel';
 import ParameterInfo from './components/ParameterInfo';
+import ProcessVisualization from './components/ProcessVisualization';
 import SBoxGrid from './components/SBoxGrid';
 import MetricsPanel from './components/MetricsPanel';
 import ComparisonTable from './components/ComparisonTable';
 import LoadingSpinner from './components/LoadingSpinner';
 import EncryptionPanel from './components/EncryptionPanel';
+import ValidationSummary from './components/ValidationSummary';
+import SecurityScoreboard, { SecurityScoreEntry } from './components/SecurityScoreboard';
 import apiService from './api';
-import { ComparisonData, MetricComparison, AnalysisResults } from './types';
+import { ComparisonData, MetricComparison, AnalysisResults, SBoxValidationResult } from './types';
 
 // Default K44 matrix (from paper - best performer)
 const DEFAULT_K44_MATRIX = [
@@ -49,6 +52,7 @@ function App() {
     matrixName: string;
     constant: number;
   } | null>(null);
+  const [customValidation, setCustomValidation] = useState<SBoxValidationResult | null>(null);
 
   const failureStreakRef = useRef(0);
   const backendStatusRef = useRef<'active' | 'inactive' | 'checking'>(backendStatus);
@@ -127,6 +131,18 @@ function App() {
     };
   }, []); // Empty dependency array - only run on mount
 
+  const extractBackendError = (err: unknown): string | null => {
+    if (
+      err &&
+      typeof err === 'object' &&
+      'response' in err &&
+      typeof (err as { response?: { data?: { detail?: unknown } } }).response?.data?.detail === 'string'
+    ) {
+      return (err as { response?: { data?: { detail?: string } } }).response?.data?.detail ?? null;
+    }
+    return null;
+  };
+
   const handleParametersChange = (params: {
     matrix: number[];
     constant: number;
@@ -137,6 +153,7 @@ function App() {
     setCustomSBox(null);
     setCustomAnalysis(null);
     setCustomSBoxParams(null);
+    setCustomValidation(null);
   };
 
   const handleGenerateAndCompare = async () => {
@@ -181,6 +198,7 @@ function App() {
           // Store custom S-box and params
           setCustomSBox(sboxResponse.sbox);
           setCustomSBoxParams(customSBoxParamsToStore);
+          setCustomValidation(sboxResponse.validation || null);
       
           // Analyze custom S-box
       const analysisResponse = await apiService.analyzeSBox(
@@ -188,7 +206,7 @@ function App() {
         `${matrixName} S-box (C=0x${customParams.constant.toString(16).toUpperCase()})`
       );
       setCustomAnalysis(analysisResponse);
-    } catch (err: any) {
+    } catch (err: unknown) {
           console.warn('Failed to generate custom S-box, continuing with K44 and AES only:', err);
           // Continue with comparison even if custom generation fails
         }
@@ -197,16 +215,122 @@ function App() {
       // Generate comparison with K44, AES, and custom (if available)
       const data = await apiService.compareSBoxes(customSBoxToCompare);
       setComparisonData(data);
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to generate and analyze S-boxes. Please check the backend server.');
+    } catch (err: unknown) {
+      const detail =
+        extractBackendError(err) ||
+        'Failed to generate and analyze S-boxes. Please check the backend server.';
+      setError(detail);
       console.error('Error:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  // Prepare comparison metrics
-  const getComparisonMetrics = (): MetricComparison[] => {
+  const getMetricWinners = (comparison: MetricComparison): string[] => {
+    const EPSILON = 1e-9;
+    const entries = [
+      { name: 'k44', value: comparison.k44 },
+      { name: 'aes', value: comparison.aes },
+    ];
+
+    if (typeof comparison.custom === 'number' && !Number.isNaN(comparison.custom)) {
+      entries.push({ name: 'custom', value: comparison.custom });
+    }
+
+    const validEntries = entries.filter(
+      (entry) => typeof entry.value === 'number' && !Number.isNaN(entry.value as number)
+    );
+
+    if (validEntries.length === 0) {
+      return [];
+    }
+
+    const mode = comparison.better ?? 'higher';
+
+    if (mode === 'closest' && typeof comparison.ideal === 'number') {
+      const scored = validEntries.map((entry) => ({
+        name: entry.name,
+        score: Math.abs((entry.value as number) - comparison.ideal!),
+      }));
+      const minScore = Math.min(...scored.map((entry) => entry.score));
+      return scored
+        .filter((entry) => Math.abs(entry.score - minScore) < EPSILON)
+        .map((entry) => entry.name);
+    }
+
+    if (mode === 'closest_to_zero') {
+      const scored = validEntries.map((entry) => ({
+        name: entry.name,
+        score: Math.abs(entry.value as number),
+      }));
+      const minScore = Math.min(...scored.map((entry) => entry.score));
+      return scored
+        .filter((entry) => Math.abs(entry.score - minScore) < EPSILON)
+        .map((entry) => entry.name);
+    }
+
+    if (mode === 'lower') {
+      const minValue = Math.min(...validEntries.map((entry) => entry.value as number));
+      return validEntries
+        .filter((entry) => Math.abs((entry.value as number) - minValue) < EPSILON)
+        .map((entry) => entry.name);
+    }
+
+    const maxValue = Math.max(...validEntries.map((entry) => entry.value as number));
+    return validEntries
+      .filter((entry) => Math.abs((entry.value as number) - maxValue) < EPSILON)
+      .map((entry) => entry.name);
+  };
+
+  const buildScoreboardEntries = (comparisons: MetricComparison[]): SecurityScoreEntry[] => {
+    if (!comparisonData) return [];
+
+    const scoreMap: Record<string, number> = { k44: 0, aes: 0 };
+    const winTracker: Record<string, string[]> = { k44: [], aes: [] };
+
+    if (comparisonData.custom_analysis) {
+      scoreMap.custom = 0;
+      winTracker.custom = [];
+    }
+
+    comparisons.forEach((comparison) => {
+      const winners = getMetricWinners(comparison);
+      winners.forEach((winner) => {
+        if (winner in scoreMap) {
+          scoreMap[winner] += 1;
+          winTracker[winner].push(comparison.name);
+        }
+      });
+    });
+
+    const entries: SecurityScoreEntry[] = Object.entries(scoreMap).map(([key, value]) => ({
+      id: key,
+      label:
+        key === 'k44'
+          ? 'Research (K44)'
+          : key === 'aes'
+            ? 'AES Standard'
+            : customSBoxParams?.matrixName || 'Custom',
+      score: value,
+      wins: winTracker[key] || [],
+    }));
+
+    const maxScore = Math.max(...entries.map((entry) => entry.score));
+    entries.forEach((entry) => {
+      entry.isBest = entry.score === maxScore;
+    });
+
+    return entries.sort((a, b) => b.score - a.score);
+  };
+
+  const getActiveCustomValidation = (): SBoxValidationResult | null => {
+    if (comparisonData && comparisonData.custom_validation) {
+      return comparisonData.custom_validation;
+    }
+    return customValidation;
+  };
+
+  function getComparisonMetrics(): MetricComparison[] {
     if (!comparisonData) return [];
 
     const hasCustom = comparisonData.custom_analysis !== null && comparisonData.custom_analysis !== undefined;
@@ -330,7 +454,11 @@ function App() {
         better: 'closest_to_zero',
       },
     ];
-  };
+  }
+
+  const securityScoreEntries = comparisonData
+    ? buildScoreboardEntries(getComparisonMetrics())
+    : [];
 
   // Prepare full analysis results for MetricsPanel
   const getK44Results = (): AnalysisResults | null => {
@@ -387,6 +515,9 @@ function App() {
           defaultConstant={DEFAULT_CONSTANT}
           autoGenerate={false}
         />
+
+        {/* Research Pipeline Visualization */}
+        <ProcessVisualization />
 
         {/* Control Panel */}
         <ControlPanel 
@@ -483,6 +614,10 @@ function App() {
             <div className="space-y-8">
               {activeTab === 'k44' && (
                 <>
+                  <ValidationSummary 
+                    title="Research S-box (K44) - Validation" 
+                    validation={comparisonData.k44_validation}
+                  />
                   <SBoxGrid 
                     sbox={comparisonData.k44_sbox} 
                     title="Research S-box (K44) - 16×16 Hexadecimal Grid"
@@ -500,6 +635,10 @@ function App() {
 
               {activeTab === 'aes' && (
                 <>
+                  <ValidationSummary 
+                    title="AES S-box - Validation" 
+                    validation={comparisonData.aes_validation}
+                  />
                   <SBoxGrid 
                     sbox={comparisonData.aes_sbox} 
                     title="Standard AES S-box - 16×16 Hexadecimal Grid"
@@ -518,6 +657,11 @@ function App() {
               {activeTab === 'comparison' && (
                 <>
                   <ComparisonTable comparisons={getComparisonMetrics()} />
+                  {securityScoreEntries.length > 0 && (
+                    <div className="mt-6">
+                      <SecurityScoreboard entries={securityScoreEntries} />
+                    </div>
+                  )}
                   
                   {/* Side-by-side S-boxes */}
                   <div className={`grid grid-cols-1 ${comparisonData.custom_sbox ? 'xl:grid-cols-3' : 'lg:grid-cols-2'} gap-4 sm:gap-6 md:gap-8`}>
@@ -556,6 +700,10 @@ function App() {
                           defaultConstant={DEFAULT_CONSTANT}
                         />
                       )}
+                      <ValidationSummary 
+                        title="Custom S-box - Validation"
+                        validation={comparisonData.custom_validation}
+                      />
                       <SBoxGrid 
                         sbox={comparisonData.custom_sbox} 
                         title={`Custom S-box${customSBoxParams ? ` (${customSBoxParams.matrixName})` : ''}`}
@@ -578,6 +726,10 @@ function App() {
                     defaultMatrix={DEFAULT_K44_MATRIX}
                     defaultConstant={DEFAULT_CONSTANT}
                   />
+                      <ValidationSummary 
+                        title={`${customSBoxParams.matrixName} - Validation`}
+                        validation={customValidation}
+                      />
                   <SBoxGrid 
                     sbox={customSBox} 
                     title={`${customSBoxParams.matrixName} S-box (C=0x${customSBoxParams.constant.toString(16).toUpperCase()})`}
@@ -611,6 +763,10 @@ function App() {
               constant={customSBoxParams.constant}
               defaultMatrix={DEFAULT_K44_MATRIX}
               defaultConstant={DEFAULT_CONSTANT}
+            />
+            <ValidationSummary 
+              title={`${customSBoxParams.matrixName} - Validation`}
+              validation={getActiveCustomValidation()}
             />
             <SBoxGrid 
               sbox={customSBox} 

@@ -49,7 +49,7 @@ const VariableFontCursor: React.FC<VariableFontCursorProps> = ({
     <h1 
       ref={containerRef}
       className={`flex flex-wrap justify-center md:justify-start font-heading ${className}`}
-      style={{ fontFamily: 'Inter, sans-serif', fontWeight: weightRange[0], cursor: 'default' }}
+      style={{ fontFamily: font, fontWeight: weightRange[0], cursor: 'default' }}
     >
       {label.split(" ").map((word, wordIndex) => (
         <div key={wordIndex} className="flex whitespace-nowrap mr-[0.25em] last:mr-0">
@@ -90,8 +90,6 @@ const Char: React.FC<{
 
   useEffect(() => {
     if (!ref.current) return;
-    
-    let animationFrameId: number;
 
     const updateStyle = () => {
       if (!ref.current) return;
@@ -121,7 +119,7 @@ const Char: React.FC<{
       // Normalize distance
       const maxDist = distRange[1];
       const minDist = distRange[0];
-      let normalizedDist = Math.min(Math.max(dist - minDist, 0) / (maxDist - minDist), 1);
+      const normalizedDist = Math.min(Math.max(dist - minDist, 0) / (maxDist - minDist), 1);
       
       // Invert: 1 = close, 0 = far
       const proximity = 1 - normalizedDist;
@@ -144,7 +142,7 @@ const Char: React.FC<{
     };
 
     // Use requestAnimationFrame for performance
-    animationFrameId = requestAnimationFrame(updateStyle);
+    const animationFrameId = requestAnimationFrame(updateStyle);
 
     return () => {
       cancelAnimationFrame(animationFrameId);

@@ -15,6 +15,7 @@ from sbox_generator import SBoxGenerator, K44_MATRIX, AES_MATRIX, C_AES, AVAILAB
 from cryptographic_tests import analyze_sbox
 from aes_cipher import create_cipher
 from report_exporter import generate_analysis_csv
+from sbox_validations import validate_sbox
 
 app = FastAPI(
     title="AES S-box Research Analyzer API",
@@ -41,6 +42,7 @@ class SBoxGenerateRequest(BaseModel):
     use_k44: bool = True
     custom_matrix: Optional[List[int]] = None
     constant: Optional[int] = None
+    require_valid: bool = False
 
 
 class SBoxAnalyzeRequest(BaseModel):
@@ -49,12 +51,35 @@ class SBoxAnalyzeRequest(BaseModel):
     name: Optional[str] = "Custom S-box"
 
 
+class BitBalanceModel(BaseModel):
+    bit: int
+    ones: int
+    zeros: int
+    expected: int
+
+
+class DuplicateValueModel(BaseModel):
+    value: int
+    count: int
+
+
+class SBoxValidationModel(BaseModel):
+    is_balanced: bool
+    is_bijective: bool
+    is_valid: bool
+    unique_values: int
+    bit_balance: List[BitBalanceModel]
+    duplicate_values: List[DuplicateValueModel]
+    missing_values: List[int]
+
+
 class SBoxResponse(BaseModel):
     """Response model for S-box generation"""
     sbox: List[int]
     matrix_used: str
     constant: int
     generation_time_ms: float
+    validation: SBoxValidationModel
 
 
 class NonlinearityMetricsModel(BaseModel):
@@ -160,6 +185,9 @@ class ComparisonResponse(BaseModel):
     k44_analysis: AnalysisMetrics
     aes_analysis: AnalysisMetrics
     custom_analysis: Optional[AnalysisMetrics] = None
+    k44_validation: SBoxValidationModel
+    aes_validation: SBoxValidationModel
+    custom_validation: Optional[SBoxValidationModel] = None
     generation_time_ms: float
     analysis_time_ms: float
 
@@ -376,6 +404,13 @@ def generate_sbox(request: SBoxGenerateRequest = None):
         
         # Generate S-box
         sbox = generator.generate_sbox(matrix, constant)
+        validation_data = validate_sbox(sbox)
+        if request.require_valid and not validation_data.get("is_valid"):
+            raise HTTPException(
+                status_code=400,
+                detail="Generated S-box failed balance/bijective criteria"
+            )
+        validation = SBoxValidationModel(**validation_data)
         
         generation_time = (time.time() - start_time) * 1000  # Convert to ms
         
@@ -383,7 +418,8 @@ def generate_sbox(request: SBoxGenerateRequest = None):
             sbox=sbox,
             matrix_used=matrix_name,
             constant=constant,
-            generation_time_ms=round(generation_time, 2)
+            generation_time_ms=round(generation_time, 2),
+            validation=validation
         )
     
     except Exception as e:
@@ -462,6 +498,9 @@ def compare(request: ComparisonRequest = None):
         k44_analysis = build_analysis_metrics(analyze_sbox(k44_sbox))
         aes_analysis = build_analysis_metrics(analyze_sbox(aes_sbox))
         custom_analysis = build_analysis_metrics(analyze_sbox(custom_sbox)) if custom_sbox else None
+        k44_validation = SBoxValidationModel(**validate_sbox(k44_sbox))
+        aes_validation = SBoxValidationModel(**validate_sbox(aes_sbox))
+        custom_validation = SBoxValidationModel(**validate_sbox(custom_sbox)) if custom_sbox else None
         analysis_time = (time.time() - analysis_start) * 1000
         
         return ComparisonResponse(
@@ -471,6 +510,9 @@ def compare(request: ComparisonRequest = None):
             k44_analysis=k44_analysis,
             aes_analysis=aes_analysis,
             custom_analysis=custom_analysis,
+            k44_validation=k44_validation,
+            aes_validation=aes_validation,
+            custom_validation=custom_validation,
             generation_time_ms=round(generation_time, 2),
             analysis_time_ms=round(analysis_time, 2)
         )
