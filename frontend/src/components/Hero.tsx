@@ -175,9 +175,7 @@ const Hero: React.FC = () => {
       </div>
 
       <div className="absolute bottom-0 left-0 right-0">
-        <svg viewBox="0 0 1440 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-12">
-          <path d="M0 48h1440V0s-187.5 48-480 48S480 0 480 0 292.5 48 0 48z" fill="white"/>
-        </svg>
+        <svg viewBox="0 0 1440 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-12"></svg>
       </div>
     </div>
   );

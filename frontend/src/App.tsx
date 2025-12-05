@@ -4,7 +4,7 @@
  * Comprehensive platform for affine matrices exploration and S-box research
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import TeamSection from './components/TeamSection';
@@ -50,23 +50,44 @@ function App() {
     constant: number;
   } | null>(null);
 
+  const failureStreakRef = useRef(0);
+  const backendStatusRef = useRef<'active' | 'inactive' | 'checking'>(backendStatus);
+  const CHECKING_THRESHOLD = 2;
+  const INACTIVE_THRESHOLD = 5;
+  const HEALTH_CHECK_INTERVAL = 5000;
+
+  useEffect(() => {
+    backendStatusRef.current = backendStatus;
+  }, [backendStatus]);
+
   // Check API health on mount and periodically
   useEffect(() => {
-    const checkHealth = async () => {
-      try {
-        setBackendStatus('checking');
-        await apiService.healthCheck();
+    let isMounted = true;
+
+    const markBackendActive = () => {
+      if (!isMounted) return;
+      if (backendStatusRef.current !== 'active') {
         setBackendStatus('active');
-        // Clear error if backend is now active
-        setError((prevError) => {
-          if (prevError && prevError.includes('Unable to connect to backend API')) {
-            return null;
-          }
-          return prevError;
-        });
-      } catch (err) {
+      }
+      setError((prevError) => {
+        if (prevError && prevError.includes('Unable to connect to backend API')) {
+          return null;
+        }
+        return prevError;
+      });
+    };
+
+    const markBackendChecking = () => {
+      if (!isMounted) return;
+      if (backendStatusRef.current === 'active') {
+        setBackendStatus('checking');
+      }
+    };
+
+    const markBackendInactive = () => {
+      if (!isMounted) return;
+      if (backendStatusRef.current !== 'inactive') {
         setBackendStatus('inactive');
-        // Only set error on first failure, not on every poll
         setError((prevError) => {
           if (!prevError) {
             return 'Unable to connect to backend API. Please ensure the server is running on http://localhost:8000';
@@ -76,13 +97,34 @@ function App() {
       }
     };
 
-    // Check immediately
+    const checkHealth = async () => {
+      try {
+        await apiService.healthCheck();
+        failureStreakRef.current = 0;
+        markBackendActive();
+      } catch (err) {
+        failureStreakRef.current += 1;
+
+        if (failureStreakRef.current >= INACTIVE_THRESHOLD) {
+          markBackendInactive();
+        } else if (
+          failureStreakRef.current >= CHECKING_THRESHOLD &&
+          backendStatusRef.current === 'active'
+        ) {
+          markBackendChecking();
+        }
+      }
+    };
+
+    // Initial check
     checkHealth();
 
-    // Poll every 5 seconds
-    const interval = setInterval(checkHealth, 5000);
+    const interval = setInterval(checkHealth, HEALTH_CHECK_INTERVAL);
 
-    return () => clearInterval(interval);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []); // Empty dependency array - only run on mount
 
   const handleParametersChange = (params: {

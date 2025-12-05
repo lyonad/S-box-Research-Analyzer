@@ -17,6 +17,8 @@ Python FastAPI backend for cryptographic S-box analysis.
   - Algebraic Degree (AD)
   - Transparency Order (TO)
   - Correlation Immunity (CI)
+  - Cycle Structure (max cycle length, fixed points)
+- **Report Export**: Generate CSV summaries that mirror `AnalysisResults` payloads (PDF planned)
 
 ## Installation
 
@@ -38,9 +40,10 @@ Visit `http://localhost:8000/docs` for interactive API documentation.
 
 ## Endpoints
 
-- `POST /generate-sbox`: Generate S-box using K44 or AES matrix
-- `POST /analyze`: Analyze S-box cryptographic strength
-- `GET /compare`: Compare K44 and AES S-boxes
+- `POST /generate-sbox`: Generate S-box using K44, AES, or a custom matrix
+- `POST /analyze`: Analyze S-box cryptographic strength (returns `AnalysisResults` structure)
+- `POST /compare`: Compare K44, AES, and optional custom S-boxes
+- `POST /export-analysis`: Export analysis results (CSV now, PDF upcoming)
 - `GET /matrix-info`: Get matrix information
 
 ## Testing

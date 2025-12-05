@@ -6,6 +6,8 @@
 import React, { useState } from 'react';
 import ParameterPresets from './ParameterPresets';
 
+type MatrixCategory = 'paper' | 'standard' | 'variations' | 'custom';
+
 interface ParameterPanelProps {
   onParametersChange: (params: {
     matrix: number[];
@@ -22,7 +24,7 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
   defaultMatrix,
   defaultConstant,
 }) => {
-  const [matrixCategory, setMatrixCategory] = useState<'paper' | 'standard' | 'variations' | 'custom'>('paper');
+  const [matrixCategory, setMatrixCategory] = useState<MatrixCategory>('paper');
   const [selectedMatrix, setSelectedMatrix] = useState<string>('k44');
   const [customMatrix, setCustomMatrix] = useState<string[]>(defaultMatrix.map(m => m.toString(2).padStart(8, '0')));
   const [constant, setConstant] = useState<number>(defaultConstant);
@@ -104,17 +106,17 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
     return [...PAPER_MATRICES.k44.matrix]; // Default fallback
   };
 
-  const handleCategoryChange = (category: 'paper' | 'standard' | 'variations' | 'custom') => {
+  const handleCategoryChange = (category: MatrixCategory) => {
     setMatrixCategory(category);
     if (category === 'paper') {
       setSelectedMatrix('k44');
-      applyParameters(PAPER_MATRICES.k44.matrix, constant);
+      applyParameters(PAPER_MATRICES.k44.matrix, constant, { categoryOverride: 'paper' });
     } else if (category === 'standard') {
       setSelectedMatrix('aes');
-      applyParameters(STANDARD_MATRICES.aes.matrix, constant);
+      applyParameters(STANDARD_MATRICES.aes.matrix, constant, { categoryOverride: 'standard' });
     } else if (category === 'variations') {
       setSelectedMatrix('identity');
-      applyParameters(VARIATION_MATRICES.identity.matrix, constant);
+      applyParameters(VARIATION_MATRICES.identity.matrix, constant, { categoryOverride: 'variations' });
     }
   };
 
@@ -122,7 +124,7 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
     setSelectedMatrix(matrixKey);
     const matrix = getMatrixByKey(matrixKey);
     if (matrix) {
-      applyParameters(matrix, constant);
+      applyParameters(matrix, constant, { categoryOverride: matrixCategory });
     }
   };
 
@@ -164,7 +166,7 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
         });
         // Only apply if all rows are valid
         if (matrixValues.every(v => !isNaN(v) && v >= 0 && v <= 255)) {
-          applyParameters(matrixValues, constant);
+          applyParameters(matrixValues, constant, { categoryOverride: 'custom' });
         }
       } catch (e) {
         // Invalid input, don't update
@@ -187,7 +189,7 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
         const currentMatrix = getCurrentMatrix();
         // Only apply if we have a valid matrix
         if (currentMatrix && currentMatrix.length === 8) {
-          applyParameters(currentMatrix, newConstant);
+          applyParameters(currentMatrix, newConstant, { categoryOverride: matrixCategory });
         }
       }
     } catch (e) {
@@ -195,11 +197,16 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
     }
   };
 
-  const applyParameters = (matrix: number[], constValue: number) => {
+  const applyParameters = (
+    matrix: number[],
+    constValue: number,
+    options?: { categoryOverride?: MatrixCategory }
+  ) => {
+    const activeCategory = options?.categoryOverride ?? matrixCategory;
     onParametersChange({
       matrix,
       constant: constValue,
-      useCustom: matrixCategory === 'custom',
+      useCustom: activeCategory === 'custom',
     });
   };
 
@@ -209,7 +216,7 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
     setConstant(defaultConstant);
     setConstantInput(defaultConstant.toString(16).toUpperCase().padStart(2, '0'));
     setCustomMatrix(defaultMatrix.map(m => m.toString(2).padStart(8, '0')));
-    applyParameters(PAPER_MATRICES.k44.matrix, defaultConstant);
+    applyParameters(PAPER_MATRICES.k44.matrix, defaultConstant, { categoryOverride: 'paper' });
   };
 
   return (
@@ -445,7 +452,7 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
                       setConstant(preset);
                       setConstantInput(preset.toString(16).toUpperCase().padStart(2, '0'));
                       const currentMatrix = getCurrentMatrix();
-                      applyParameters(currentMatrix, preset);
+                      applyParameters(currentMatrix, preset, { categoryOverride: matrixCategory });
                     }}
                     className={`px-2 sm:px-3 py-1 rounded font-mono text-[10px] sm:text-xs font-semibold transition-all ${
                         constant === preset
@@ -490,6 +497,7 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
           onLoadPreset={(matrix, constValue) => {
             // Try to identify which category this matrix belongs to
             let found = false;
+            let targetCategory: MatrixCategory = 'custom';
             
             // Check if it's a paper matrix
             for (const [key, matrixData] of Object.entries(PAPER_MATRICES)) {
@@ -497,6 +505,7 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
                 setMatrixCategory('paper');
                 setSelectedMatrix(key);
                 found = true;
+                targetCategory = 'paper';
                 break;
               }
             }
@@ -508,6 +517,7 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
                   setMatrixCategory('standard');
                   setSelectedMatrix(key);
                   found = true;
+                  targetCategory = 'standard';
                   break;
                 }
               }
@@ -520,6 +530,7 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
                   setMatrixCategory('variations');
                   setSelectedMatrix(key);
                   found = true;
+                  targetCategory = 'variations';
                   break;
                 }
               }
@@ -529,11 +540,12 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
             if (!found) {
               setMatrixCategory('custom');
               setCustomMatrix(matrix.map(m => m.toString(2).padStart(8, '0')));
+              targetCategory = 'custom';
             }
             
             setConstant(constValue);
             setConstantInput(constValue.toString(16).toUpperCase().padStart(2, '0'));
-            applyParameters(matrix, constValue);
+            applyParameters(matrix, constValue, { categoryOverride: targetCategory });
           }}
           currentMatrix={getCurrentMatrix()}
           currentConstant={constant}

@@ -5,14 +5,16 @@ Advanced S-Box 44 Analyzer
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 import time
+import base64
 
 from sbox_generator import SBoxGenerator, K44_MATRIX, AES_MATRIX, C_AES, AVAILABLE_MATRICES
 from cryptographic_tests import analyze_sbox
 from aes_cipher import create_cipher
-import base64
+from report_exporter import generate_analysis_csv
 
 app = FastAPI(
     title="AES S-box Research Analyzer API",
@@ -55,20 +57,93 @@ class SBoxResponse(BaseModel):
     generation_time_ms: float
 
 
-class AnalysisResponse(BaseModel):
+class NonlinearityMetricsModel(BaseModel):
+    min: int
+    max: int
+    average: float
+
+
+class SACMetricsModel(BaseModel):
+    average: float
+    min: float
+    max: float
+    std: float
+    matrix: Optional[List[List[float]]] = None
+
+
+class BICNLMetricsModel(BaseModel):
+    min: int
+    max: int
+    average: float
+
+
+class BICSACMetricsModel(BaseModel):
+    average_sac: float
+    min_sac: float
+    max_sac: float
+    std_sac: float
+
+
+class LAPMetricsModel(BaseModel):
+    max_lap: float
+    max_bias: float
+    average_bias: float
+
+
+class DAPMetricsModel(BaseModel):
+    max_dap: float
+    average_dap: float
+
+
+class DifferentialUniformityMetricsModel(BaseModel):
+    max_du: int
+    average_du: float
+
+
+class AlgebraicDegreeMetricsModel(BaseModel):
+    min: int
+    max: int
+    average: float
+    degrees: List[int]
+
+
+class TransparencyOrderMetricsModel(BaseModel):
+    transparency_order: float
+    max_correlation: float
+    min_correlation: float
+
+
+class CorrelationImmunityMetricsModel(BaseModel):
+    min: int
+    max: int
+    average: float
+    orders: List[int]
+
+
+class CycleStructureMetricsModel(BaseModel):
+    count: int
+    max_length: int
+    min_length: int
+    fixed_points: int
+
+
+class AnalysisMetrics(BaseModel):
+    nonlinearity: NonlinearityMetricsModel
+    sac: SACMetricsModel
+    bic_nl: BICNLMetricsModel
+    bic_sac: BICSACMetricsModel
+    lap: LAPMetricsModel
+    dap: DAPMetricsModel
+    differential_uniformity: DifferentialUniformityMetricsModel
+    algebraic_degree: AlgebraicDegreeMetricsModel
+    transparency_order: TransparencyOrderMetricsModel
+    correlation_immunity: CorrelationImmunityMetricsModel
+    cycle_structure: CycleStructureMetricsModel
+
+
+class AnalysisResponse(AnalysisMetrics):
     """Response model for S-box analysis"""
     sbox_name: str
-    nonlinearity: Dict
-    sac: Dict
-    bic_nl: Dict
-    bic_sac: Dict
-    lap: Dict
-    dap: Dict
-    differential_uniformity: Dict
-    algebraic_degree: Dict
-    transparency_order: Dict
-    correlation_immunity: Dict
-    cycle_structure: Dict
     analysis_time_ms: float
 
 
@@ -82,9 +157,9 @@ class ComparisonResponse(BaseModel):
     k44_sbox: List[int]
     aes_sbox: List[int]
     custom_sbox: Optional[List[int]] = None
-    k44_analysis: Dict
-    aes_analysis: Dict
-    custom_analysis: Optional[Dict] = None
+    k44_analysis: AnalysisMetrics
+    aes_analysis: AnalysisMetrics
+    custom_analysis: Optional[AnalysisMetrics] = None
     generation_time_ms: float
     analysis_time_ms: float
 
@@ -117,6 +192,114 @@ class DecryptResponse(BaseModel):
     plaintext: str
     sbox_type: str
     decryption_time_ms: float
+
+
+class ExportAnalysisRequest(BaseModel):
+    """Request model for analysis export"""
+    sbox: List[int]
+    name: Optional[str] = "Custom S-box"
+    format: str = "csv"
+
+
+def validate_sbox_values(sbox: List[int]):
+    """Ensure provided S-box has valid length and range."""
+    if len(sbox) != 256:
+        raise HTTPException(
+            status_code=400,
+            detail="S-box must contain exactly 256 values"
+        )
+    if not all(isinstance(val, int) and 0 <= val <= 255 for val in sbox):
+        raise HTTPException(
+            status_code=400,
+            detail="All S-box values must be integers in range 0-255"
+        )
+
+
+def build_analysis_metrics(raw_results: Dict[str, Any]) -> AnalysisMetrics:
+    """Convert raw analysis dictionary to typed metrics."""
+    nonlinearity = raw_results.get("nonlinearity", {})
+    sac = raw_results.get("sac", {})
+    bic_nl = raw_results.get("bic_nl", {})
+    bic_sac = raw_results.get("bic_sac", {})
+    lap = raw_results.get("lap", {})
+    dap = raw_results.get("dap", {})
+    diff_uniformity = raw_results.get("differential_uniformity", {})
+    algebraic_degree = raw_results.get("algebraic_degree", {})
+    transparency_order = raw_results.get("transparency_order", {})
+    correlation_immunity = raw_results.get("correlation_immunity", {})
+    cycle_structure = raw_results.get("cycle_structure", {})
+
+    return AnalysisMetrics(
+        nonlinearity=NonlinearityMetricsModel(
+            min=int(nonlinearity.get("min", 0)),
+            max=int(nonlinearity.get("max", 0)),
+            average=float(nonlinearity.get("average", 0.0))
+        ),
+        sac=SACMetricsModel(
+            average=float(sac.get("average", 0.0)),
+            min=float(sac.get("min", 0.0)),
+            max=float(sac.get("max", 0.0)),
+            std=float(sac.get("std", 0.0)),
+            matrix=sac.get("matrix")
+        ),
+        bic_nl=BICNLMetricsModel(
+            min=int(bic_nl.get("min", 0)),
+            max=int(bic_nl.get("max", 0)),
+            average=float(bic_nl.get("average", 0.0))
+        ),
+        bic_sac=BICSACMetricsModel(
+            average_sac=float(bic_sac.get("average_sac", 0.0)),
+            min_sac=float(bic_sac.get("min_sac", 0.0)),
+            max_sac=float(bic_sac.get("max_sac", 0.0)),
+            std_sac=float(bic_sac.get("std_sac", 0.0))
+        ),
+        lap=LAPMetricsModel(
+            max_lap=float(lap.get("max_lap", 0.0)),
+            max_bias=float(lap.get("max_bias", 0.0)),
+            average_bias=float(lap.get("average_bias", 0.0))
+        ),
+        dap=DAPMetricsModel(
+            max_dap=float(dap.get("max_dap", 0.0)),
+            average_dap=float(dap.get("average_dap", 0.0))
+        ),
+        differential_uniformity=DifferentialUniformityMetricsModel(
+            max_du=int(diff_uniformity.get("max_du", 0)),
+            average_du=float(diff_uniformity.get("average_du", 0.0))
+        ),
+        algebraic_degree=AlgebraicDegreeMetricsModel(
+            min=int(algebraic_degree.get("min", 0)),
+            max=int(algebraic_degree.get("max", 0)),
+            average=float(algebraic_degree.get("average", 0.0)),
+            degrees=[int(val) for val in algebraic_degree.get("degrees", [])]
+        ),
+        transparency_order=TransparencyOrderMetricsModel(
+            transparency_order=float(transparency_order.get("transparency_order", 0.0)),
+            max_correlation=float(transparency_order.get("max_correlation", 0.0)),
+            min_correlation=float(transparency_order.get("min_correlation", 0.0))
+        ),
+        correlation_immunity=CorrelationImmunityMetricsModel(
+            min=int(correlation_immunity.get("min", 0)),
+            max=int(correlation_immunity.get("max", 0)),
+            average=float(correlation_immunity.get("average", 0.0)),
+            orders=[int(val) for val in correlation_immunity.get("orders", [])]
+        ),
+        cycle_structure=CycleStructureMetricsModel(
+            count=int(cycle_structure.get("count", 0)),
+            max_length=int(cycle_structure.get("max_length", 0)),
+            min_length=int(cycle_structure.get("min_length", 0)),
+            fixed_points=int(cycle_structure.get("fixed_points", 0))
+        )
+    )
+
+
+def build_export_filename(name: str, extension: str) -> str:
+    """Create filesystem-safe filename for exported reports."""
+    sanitized = "".join(
+        ch if ch.isalnum() or ch in ("-", "_") else "_"
+        for ch in (name or "").strip().lower()
+    )
+    sanitized = sanitized or "analysis_report"
+    return f"{sanitized}.{extension}"
 
 
 # API Endpoints
@@ -220,42 +403,22 @@ def analyze(request: SBoxAnalyzeRequest):
     - Differential Approximation Probability (DAP)
     """
     try:
-        if len(request.sbox) != 256:
-            raise HTTPException(
-                status_code=400,
-                detail="S-box must contain exactly 256 values"
-            )
-        
-        # Validate S-box values
-        if not all(0 <= val <= 255 for val in request.sbox):
-            raise HTTPException(
-                status_code=400,
-                detail="All S-box values must be in range 0-255"
-            )
-        
+        validate_sbox_values(request.sbox)
+
         start_time = time.time()
-        
+
         # Perform analysis
-        results = analyze_sbox(request.sbox)
-        
+        raw_results = analyze_sbox(request.sbox)
+        metrics = build_analysis_metrics(raw_results)
+
         analysis_time = (time.time() - start_time) * 1000
-        
+
         return AnalysisResponse(
             sbox_name=request.name,
-            nonlinearity=results["nonlinearity"],
-            sac=results["sac"],
-            bic_nl=results["bic_nl"],
-            bic_sac=results["bic_sac"],
-            lap=results["lap"],
-            dap=results["dap"],
-            differential_uniformity=results["differential_uniformity"],
-            algebraic_degree=results["algebraic_degree"],
-            transparency_order=results["transparency_order"],
-            correlation_immunity=results["correlation_immunity"],
-            cycle_structure=results["cycle_structure"],
-            analysis_time_ms=round(analysis_time, 2)
+            analysis_time_ms=round(analysis_time, 2),
+            **metrics.dict()
         )
-    
+
     except HTTPException:
         raise
     except Exception as e:
@@ -289,25 +452,16 @@ def compare(request: ComparisonRequest = None):
         # Validate custom S-box if provided
         custom_sbox = None
         if request.custom_sbox:
-            if len(request.custom_sbox) != 256:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Custom S-box must contain exactly 256 values"
-                )
-            if not all(0 <= val <= 255 for val in request.custom_sbox):
-                raise HTTPException(
-                    status_code=400,
-                    detail="All S-box values must be in range 0-255"
-                )
+            validate_sbox_values(request.custom_sbox)
             custom_sbox = request.custom_sbox
         
         generation_time = (time.time() - start_time) * 1000
         
         # Analyze all S-boxes
         analysis_start = time.time()
-        k44_analysis = analyze_sbox(k44_sbox)
-        aes_analysis = analyze_sbox(aes_sbox)
-        custom_analysis = analyze_sbox(custom_sbox) if custom_sbox else None
+        k44_analysis = build_analysis_metrics(analyze_sbox(k44_sbox))
+        aes_analysis = build_analysis_metrics(analyze_sbox(aes_sbox))
+        custom_analysis = build_analysis_metrics(analyze_sbox(custom_sbox)) if custom_sbox else None
         analysis_time = (time.time() - analysis_start) * 1000
         
         return ComparisonResponse(
@@ -321,6 +475,52 @@ def compare(request: ComparisonRequest = None):
             analysis_time_ms=round(analysis_time, 2)
         )
     
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/export-analysis")
+def export_analysis(request: ExportAnalysisRequest):
+    """
+    Export analysis results into machine-readable formats (CSV initially).
+    
+    Future support for PDF reporting is planned per project roadmap.
+    """
+    try:
+        validate_sbox_values(request.sbox)
+
+        start_time = time.time()
+        raw_results = analyze_sbox(request.sbox)
+        analysis_time = (time.time() - start_time) * 1000
+        metrics = build_analysis_metrics(raw_results)
+
+        export_format = (request.format or "csv").strip().lower()
+
+        if export_format == "csv":
+            csv_content = generate_analysis_csv(
+                request.name or "Custom S-box",
+                metrics.dict(),
+                round(analysis_time, 2)
+            )
+            filename = build_export_filename(request.name or "custom_sbox", "csv")
+            return PlainTextResponse(
+                csv_content,
+                media_type="text/csv",
+                headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+            )
+        if export_format == "pdf":
+            raise HTTPException(
+                status_code=501,
+                detail="PDF export is planned but not yet implemented."
+            )
+
+        raise HTTPException(
+            status_code=400,
+            detail="Unsupported export format. Use 'csv' or 'pdf'."
+        )
+
     except HTTPException:
         raise
     except Exception as e:
