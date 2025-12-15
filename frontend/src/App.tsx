@@ -17,6 +17,7 @@ import MetricsPanel from './components/MetricsPanel';
 import ComparisonTable from './components/ComparisonTable';
 import LoadingSpinner from './components/LoadingSpinner';
 import EncryptionPanel from './components/EncryptionPanel';
+import ImageEncryptionPanel from './components/ImageEncryptionPanel';
 import ValidationSummary from './components/ValidationSummary';
 import SecurityScoreboard, { SecurityScoreEntry } from './components/SecurityScoreboard';
 import apiService from './api';
@@ -330,6 +331,19 @@ function App() {
     return customValidation;
   };
 
+  const computeSV = (analysis: {
+    nonlinearity: { average: number };
+    sac: { average: number };
+    bic_nl: { average: number };
+    bic_sac: { average_sac: number };
+  }): number => {
+    const nl = analysis.nonlinearity.average;
+    const sac = analysis.sac.average;
+    const bicNl = analysis.bic_nl.average;
+    const bicSac = analysis.bic_sac.average_sac;
+    return (120 - nl) + Math.abs(0.5 - sac) + (120 - bicNl) + Math.abs(0.5 - bicSac);
+  };
+
   function getComparisonMetrics(): MetricComparison[] {
     if (!comparisonData) return [];
 
@@ -348,6 +362,13 @@ function App() {
         k44: comparisonData.k44_analysis.nonlinearity.min,
         aes: comparisonData.aes_analysis.nonlinearity.min,
         custom: hasCustom ? comparisonData.custom_analysis!.nonlinearity.min : undefined,
+        target: '112',
+      },
+      {
+        name: 'Nonlinearity (Max)',
+        k44: comparisonData.k44_analysis.nonlinearity.max,
+        aes: comparisonData.aes_analysis.nonlinearity.max,
+        custom: hasCustom ? comparisonData.custom_analysis!.nonlinearity.max : undefined,
         target: '112',
       },
       {
@@ -452,6 +473,14 @@ function App() {
         custom: hasCustom ? comparisonData.custom_analysis!.cycle_structure.fixed_points : undefined,
         target: '0',
         better: 'closest_to_zero',
+      },
+      {
+        name: 'SV (Strength Value)',
+        k44: computeSV(comparisonData.k44_analysis),
+        aes: computeSV(comparisonData.aes_analysis),
+        custom: hasCustom ? computeSV(comparisonData.custom_analysis!) : undefined,
+        target: 'Lower is better',
+        better: 'lower',
       },
     ];
   }
@@ -662,7 +691,6 @@ function App() {
                       <SecurityScoreboard entries={securityScoreEntries} />
                     </div>
                   )}
-                  
                   {/* Side-by-side S-boxes */}
                   <div className={`grid grid-cols-1 ${comparisonData.custom_sbox ? 'xl:grid-cols-3' : 'lg:grid-cols-2'} gap-4 sm:gap-6 md:gap-8`}>
                     <SBoxGrid 
@@ -729,7 +757,7 @@ function App() {
                       <ValidationSummary 
                         title={`${customSBoxParams.matrixName} - Validation`}
                         validation={customValidation}
-                      />
+                  />
                   <SBoxGrid 
                     sbox={customSBox} 
                     title={`${customSBoxParams.matrixName} S-box (C=0x${customSBoxParams.constant.toString(16).toUpperCase()})`}
@@ -811,6 +839,22 @@ function App() {
             customSBox={customSBox}
             customSBoxName={customSBoxParams?.matrixName || 'Custom'}
           />
+
+          <div className="mt-10 sm:mt-12">
+            <div className="mb-4 sm:mb-6">
+              <h2 className="font-subheading text-xl sm:text-2xl md:text-3xl text-white mb-4">
+                Image Encryption & Decryption
+              </h2>
+              <div className="w-16 h-[2px] bg-white/60"></div>
+              <p className="font-body text-text-primary mt-3 sm:mt-4 text-sm sm:text-base">
+                Encrypt and decrypt images using AES-128. Encrypted images are visible as cipher images.
+              </p>
+            </div>
+            <ImageEncryptionPanel
+              customSBox={customSBox}
+              customSBoxName={customSBoxParams?.matrixName || 'Custom'}
+            />
+          </div>
         </div>
 
         {/* Initial State - REMOVED: Ready to Analyze card moved above Encryption section */}
@@ -827,8 +871,8 @@ function App() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3 sm:gap-4">
               <img 
-                src="/images/UNNES Logo.png" 
-                alt="UNNES" 
+                src="/images/LOGO.png" 
+                alt="Logo" 
                 className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
               />
               <div className="text-left">

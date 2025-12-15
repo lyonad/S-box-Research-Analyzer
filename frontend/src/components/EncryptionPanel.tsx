@@ -73,7 +73,8 @@ const EncryptionPanel: React.FC<EncryptionPanelProps> = ({
       setResult({
         text: response.ciphertext,
         sboxType: response.sbox_type,
-        time: response.encryption_time_ms,
+        // Convert from ms to seconds
+        time: response.encryption_time_ms / 1000,
       });
     } catch (err: unknown) {
       setError(extractErrorMessage(err, 'Encryption failed'));
@@ -113,7 +114,8 @@ const EncryptionPanel: React.FC<EncryptionPanelProps> = ({
       setResult({
         text: response.plaintext,
         sboxType: response.sbox_type,
-        time: response.decryption_time_ms,
+        // Convert from ms to seconds
+        time: response.decryption_time_ms / 1000,
       });
     } catch (err: unknown) {
       setError(extractErrorMessage(err, 'Decryption failed'));
@@ -315,7 +317,7 @@ const EncryptionPanel: React.FC<EncryptionPanelProps> = ({
               {mode === 'encrypt' ? 'Encrypted' : 'Decrypted'} successfully!
             </p>
             <span className="text-xs text-text-primary font-body">
-              {result.time.toFixed(2)} ms
+              {result.time.toFixed(2)}s
             </span>
           </div>
           <div className="relative">

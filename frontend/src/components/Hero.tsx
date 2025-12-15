@@ -113,8 +113,8 @@ const Hero: React.FC = () => {
               {/* Logo */}
               <div className="relative z-10">
                 <img
-                  src="/images/UNNES Logo.png"
-                  alt="UNNES Logo"
+                  src="/images/LOGO.png"
+                  alt="Logo"
                   className="w-28 h-28 md:w-36 md:h-36 object-contain"
                 />
               </div>

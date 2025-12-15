@@ -3,13 +3,18 @@ FastAPI Backend for AES S-box Research Tool
 Advanced S-Box 44 Analyzer
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import PlainTextResponse, Response
 from pydantic import BaseModel
 from typing import List, Dict, Optional, Any
 import time
 import base64
+import io
+import math
+import json
+import numpy as np
+from PIL import Image
 
 from sbox_generator import SBoxGenerator, K44_MATRIX, AES_MATRIX, C_AES, AVAILABLE_MATRICES
 from cryptographic_tests import analyze_sbox
@@ -30,6 +35,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Sbox-Type", "X-Encryption-Time", "X-Decryption-Time", "X-Histogram-Data", "Content-Disposition"],
 )
 
 # Initialize generator
@@ -220,6 +226,20 @@ class DecryptResponse(BaseModel):
     plaintext: str
     sbox_type: str
     decryption_time_ms: float
+
+
+class ImageEncryptResponse(BaseModel):
+    """Response model for image encryption"""
+    sbox_type: str
+    encryption_time_ms: float
+    image_format: str
+
+
+class ImageDecryptResponse(BaseModel):
+    """Response model for image decryption"""
+    sbox_type: str
+    decryption_time_ms: float
+    image_format: str
 
 
 class ExportAnalysisRequest(BaseModel):
@@ -458,7 +478,9 @@ def analyze(request: SBoxAnalyzeRequest):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        import traceback
+        error_detail = f"{str(e)}\n{traceback.format_exc()}"
+        raise HTTPException(status_code=500, detail=error_detail)
 
 
 @app.post("/compare", response_model=ComparisonResponse)
@@ -520,7 +542,9 @@ def compare(request: ComparisonRequest = None):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        import traceback
+        error_detail = f"{str(e)}\n{traceback.format_exc()}"
+        raise HTTPException(status_code=500, detail=error_detail)
 
 
 @app.post("/export-analysis")
@@ -566,7 +590,9 @@ def export_analysis(request: ExportAnalysisRequest):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        import traceback
+        error_detail = f"{str(e)}\n{traceback.format_exc()}"
+        raise HTTPException(status_code=500, detail=error_detail)
 
 
 @app.get("/matrix-info")
@@ -675,7 +701,9 @@ def encrypt(request: EncryptRequest):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        import traceback
+        error_detail = f"{str(e)}\n{traceback.format_exc()}"
+        raise HTTPException(status_code=500, detail=error_detail)
 
 
 @app.post("/decrypt", response_model=DecryptResponse)
@@ -751,6 +779,298 @@ def decrypt(request: DecryptRequest):
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/encrypt-image")
+async def encrypt_image(
+    file: UploadFile = File(...),
+    key: str = Form(...),
+    sbox_type: str = Form("k44"),
+    custom_sbox: Optional[str] = Form(None)
+):
+    """
+    Encrypt image using AES-128 with K44, AES, or custom S-box
+    
+    Args:
+        file: Image file to encrypt
+        key: Encryption key (will be padded/truncated to 16 bytes)
+        sbox_type: "k44" for K44 S-box, "aes" for standard AES S-box, "custom" for custom S-box
+        custom_sbox: JSON string of custom S-box (256 values) - required if sbox_type is "custom"
+    
+    Returns:
+        Encrypted image (PNG format) as binary data
+    """
+    try:
+        if sbox_type.lower() not in ['k44', 'aes', 'custom']:
+            raise HTTPException(
+                status_code=400,
+                detail="sbox_type must be 'k44', 'aes', or 'custom'"
+            )
+        
+        custom_sbox_list = None
+        if sbox_type.lower() == 'custom':
+            if custom_sbox is None:
+                raise HTTPException(
+                    status_code=400,
+                    detail="custom_sbox is required when sbox_type is 'custom'"
+                )
+            try:
+                custom_sbox_list = json.loads(custom_sbox)
+                if len(custom_sbox_list) != 256:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Custom S-box must contain exactly 256 values"
+                    )
+            except json.JSONDecodeError:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid JSON format for custom_sbox"
+                )
+        
+        start_time = time.time()
+        
+        # Read image file
+        image_bytes = await file.read()
+        
+        # Open image to get format and metadata
+        try:
+            img = Image.open(io.BytesIO(image_bytes))
+            original_format = img.format or 'PNG'
+            # Convert to RGB if necessary (to ensure consistent format)
+            if img.mode not in ('RGB', 'RGBA'):
+                img = img.convert('RGB')
+            
+            # Calculate histogram for original image
+            img_array = np.array(img)
+            original_histogram = {
+                'red': np.histogram(img_array[:, :, 0].flatten(), bins=256, range=(0, 256))[0].tolist(),
+                'green': np.histogram(img_array[:, :, 1].flatten(), bins=256, range=(0, 256))[0].tolist(),
+                'blue': np.histogram(img_array[:, :, 2].flatten(), bins=256, range=(0, 256))[0].tolist(),
+            }
+            
+            # Save to bytes buffer to get raw image data
+            img_buffer = io.BytesIO()
+            img.save(img_buffer, format='PNG')
+            image_data = img_buffer.getvalue()
+        except Exception as e:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid image file: {str(e)}"
+            )
+        
+        # Prepare key
+        key_bytes = _prepare_key(key)
+        
+        # Create cipher with specified S-box
+        cipher = create_cipher(
+            sbox_type.lower(),
+            custom_sbox_list if sbox_type.lower() == 'custom' else None
+        )
+        
+        # Encrypt image data
+        ciphertext_bytes = cipher.encrypt(image_data, key_bytes)
+        
+        # Store original length in first 4 bytes (as 32-bit integer, big-endian)
+        data_len = len(ciphertext_bytes)
+        length_header = data_len.to_bytes(4, byteorder='big')
+        
+        # Combine length header with ciphertext
+        data_with_length = length_header + ciphertext_bytes
+        total_data_len = len(data_with_length)
+        
+        # Create encrypted image from ciphertext bytes
+        # Calculate dimensions to fit the data
+        # Calculate side length to fit all bytes (3 bytes per pixel for RGB)
+        pixels_needed = math.ceil(total_data_len / 3)
+        side = int(math.ceil(math.sqrt(pixels_needed)))
+        total_pixels = side * side
+        total_bytes_needed = total_pixels * 3
+        
+        # Pad data to fit image dimensions
+        padded_data = data_with_length + b'\x00' * (total_bytes_needed - total_data_len)
+        
+        # Create image from encrypted bytes (RGB mode)
+        encrypted_img = Image.frombytes('RGB', (side, side), padded_data[:total_bytes_needed])
+        
+        # Calculate histogram for encrypted image
+        encrypted_array = np.array(encrypted_img)
+        encrypted_histogram = {
+            'red': np.histogram(encrypted_array[:, :, 0].flatten(), bins=256, range=(0, 256))[0].tolist(),
+            'green': np.histogram(encrypted_array[:, :, 1].flatten(), bins=256, range=(0, 256))[0].tolist(),
+            'blue': np.histogram(encrypted_array[:, :, 2].flatten(), bins=256, range=(0, 256))[0].tolist(),
+        }
+        
+        # Save to buffer as PNG
+        output_buffer = io.BytesIO()
+        encrypted_img.save(output_buffer, format='PNG')
+        encrypted_image_bytes = output_buffer.getvalue()
+        
+        encryption_time = (time.time() - start_time) * 1000
+        
+        # Ensure minimum precision of 2 decimal places
+        time_str = f"{encryption_time:.2f}"
+        
+        # Encode histograms as JSON for headers (base64 encoded to avoid header size limits)
+        histogram_data = {
+            'original': original_histogram,
+            'encrypted': encrypted_histogram
+        }
+        histogram_json = json.dumps(histogram_data)
+        histogram_b64 = base64.b64encode(histogram_json.encode('utf-8')).decode('utf-8')
+        
+        return Response(
+            content=encrypted_image_bytes,
+            media_type="image/png",
+            headers={
+                "X-Sbox-Type": sbox_type.lower(),
+                "X-Encryption-Time": time_str,
+                "X-Histogram-Data": histogram_b64,
+                "Content-Disposition": f'attachment; filename="encrypted_image.png"'
+            }
+        )
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        error_detail = f"{str(e)}\n{traceback.format_exc()}"
+        raise HTTPException(status_code=500, detail=error_detail)
+
+
+@app.post("/decrypt-image")
+async def decrypt_image(
+    file: UploadFile = File(...),
+    key: str = Form(...),
+    sbox_type: str = Form("k44"),
+    custom_sbox: Optional[str] = Form(None)
+):
+    """
+    Decrypt image using AES-128 with K44, AES, or custom S-box
+    
+    Args:
+        file: Encrypted image file (cipher image)
+        key: Decryption key (must match encryption key)
+        sbox_type: "k44" for K44 S-box, "aes" for standard AES S-box, "custom" for custom S-box
+        custom_sbox: JSON string of custom S-box (256 values) - required if sbox_type is "custom"
+    
+    Returns:
+        Decrypted image (PNG format) as binary data
+    """
+    try:
+        if sbox_type.lower() not in ['k44', 'aes', 'custom']:
+            raise HTTPException(
+                status_code=400,
+                detail="sbox_type must be 'k44', 'aes', or 'custom'"
+            )
+        
+        custom_sbox_list = None
+        if sbox_type.lower() == 'custom':
+            if custom_sbox is None:
+                raise HTTPException(
+                    status_code=400,
+                    detail="custom_sbox is required when sbox_type is 'custom'"
+                )
+            try:
+                custom_sbox_list = json.loads(custom_sbox)
+                if len(custom_sbox_list) != 256:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Custom S-box must contain exactly 256 values"
+                    )
+            except json.JSONDecodeError:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid JSON format for custom_sbox"
+                )
+        
+        start_time = time.time()
+        
+        # Read encrypted image file
+        encrypted_image_bytes = await file.read()
+        
+        # Open encrypted image and extract bytes
+        try:
+            encrypted_img = Image.open(io.BytesIO(encrypted_image_bytes))
+            if encrypted_img.mode != 'RGB':
+                encrypted_img = encrypted_img.convert('RGB')
+            
+            # Extract raw bytes from image
+            all_bytes = encrypted_img.tobytes()
+            
+            # Extract length header (first 4 bytes)
+            if len(all_bytes) < 4:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid encrypted image: data too short"
+                )
+            
+            data_len = int.from_bytes(all_bytes[:4], byteorder='big')
+            
+            # Extract ciphertext (skip 4-byte header)
+            if len(all_bytes) < 4 + data_len:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid encrypted image: corrupted data"
+                )
+            
+            encrypted_data = all_bytes[4:4+data_len]
+            
+        except Exception as e:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid encrypted image file: {str(e)}"
+            )
+        
+        # Prepare key
+        key_bytes = _prepare_key(key)
+        
+        # Create cipher with specified S-box
+        cipher = create_cipher(
+            sbox_type.lower(),
+            custom_sbox_list if sbox_type.lower() == 'custom' else None
+        )
+        
+        # Decrypt image data
+        try:
+            decrypted_bytes = cipher.decrypt(encrypted_data, key_bytes)
+        except ValueError as e:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Decryption failed: {str(e)}. Please check your key and ensure the image was encrypted with the same S-box."
+            )
+        
+        # Try to reconstruct original image
+        try:
+            decrypted_img = Image.open(io.BytesIO(decrypted_bytes))
+            # Save to buffer as PNG
+            output_buffer = io.BytesIO()
+            decrypted_img.save(output_buffer, format='PNG')
+            decrypted_image_bytes = output_buffer.getvalue()
+        except Exception:
+            # If image reconstruction fails, return as-is (might be valid image data)
+            decrypted_image_bytes = decrypted_bytes
+        
+        decryption_time = (time.time() - start_time) * 1000
+        
+        # Ensure minimum precision of 2 decimal places
+        time_str = f"{decryption_time:.2f}"
+        
+        return Response(
+            content=decrypted_image_bytes,
+            media_type="image/png",
+            headers={
+                "X-Sbox-Type": sbox_type.lower(),
+                "X-Decryption-Time": time_str,
+                "Content-Disposition": f'attachment; filename="decrypted_image.png"'
+            }
+        )
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        error_detail = f"{str(e)}\n{traceback.format_exc()}"
+        raise HTTPException(status_code=500, detail=error_detail)
 
 
 if __name__ == "__main__":

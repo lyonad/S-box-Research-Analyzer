@@ -78,8 +78,8 @@ const Header: React.FC<HeaderProps> = ({ backendStatus }) => {
         <div className="flex items-center justify-between gap-2 sm:gap-4">
           <div className="flex items-center gap-2 sm:gap-3 md:gap-4 min-w-0 flex-1">
             <img 
-              src="/images/UNNES Logo.png" 
-              alt="UNNES" 
+              src="/images/LOGO.png" 
+              alt="Logo" 
               className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 object-contain flex-shrink-0"
             />
             <div className="min-w-0">

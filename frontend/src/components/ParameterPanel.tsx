@@ -29,6 +29,26 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
   const [customMatrix, setCustomMatrix] = useState<string[]>(defaultMatrix.map(m => m.toString(2).padStart(8, '0')));
   const [constant, setConstant] = useState<number>(defaultConstant);
   const [constantInput, setConstantInput] = useState<string>(defaultConstant.toString(16).toUpperCase().padStart(2, '0'));
+  // Keep state available for potential extensions; currently unused
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [lastR0Value, setLastR0Value] = useState<number>(defaultMatrix[0]);
+
+  const parseRowValue = (row: string): number | null => {
+    const trimmed = row.trim();
+    if (trimmed.startsWith('0x') || trimmed.match(/^[0-9A-Fa-f]{1,2}$/)) {
+      return parseInt(trimmed.replace('0x', ''), 16) & 0xFF;
+    }
+    if (trimmed.match(/^[01]{1,8}$/)) {
+      return parseInt(trimmed, 2) & 0xFF;
+    }
+    const parsed = parseInt(trimmed, 10);
+    if (!isNaN(parsed) && parsed >= 0 && parsed <= 255) {
+      return parsed;
+    }
+    return null;
+  };
+
+  const formatBinary = (v: number) => v.toString(2).padStart(8, '0');
 
   // Paper Matrices - From the research paper
   const PAPER_MATRICES = {
@@ -148,23 +168,25 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
     
     if (matrixCategory === 'custom') {
       try {
+        // Jika R0 diubah: auto-isi R1..R7 sebagai R0+i (mod 256)
+        if (index === 0) {
+          const base = parseRowValue(value);
+          if (base === null) throw new Error('Invalid format');
+          const autoMatrix = Array.from({ length: 8 }, (_, i) => (base + i) % 256);
+          setCustomMatrix(autoMatrix.map(formatBinary));
+          setLastR0Value(base);
+          applyParameters(autoMatrix, constant, { categoryOverride: 'custom' });
+          return;
+        }
+
+        // Selain R0, tetap validasi normal
         const matrixValues = newMatrix.map(row => {
-          // Accept binary (8 bits) or hex (0xXX or XX)
-          const trimmed = row.trim();
-          if (trimmed.startsWith('0x') || trimmed.match(/^[0-9A-Fa-f]{1,2}$/)) {
-            return parseInt(trimmed.replace('0x', ''), 16) & 0xFF;
-          } else if (trimmed.match(/^[01]{1,8}$/)) {
-            return parseInt(trimmed, 2) & 0xFF;
-          } else {
-            // Try to parse as decimal
-            const parsed = parseInt(trimmed, 10);
-            if (!isNaN(parsed) && parsed >= 0 && parsed <= 255) {
-              return parsed;
-            }
+          const parsed = parseRowValue(row);
+          if (parsed === null) {
             throw new Error('Invalid format');
           }
+          return parsed;
         });
-        // Only apply if all rows are valid
         if (matrixValues.every(v => !isNaN(v) && v >= 0 && v <= 255)) {
           applyParameters(matrixValues, constant, { categoryOverride: 'custom' });
         }
@@ -172,6 +194,13 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
         // Invalid input, don't update
       }
     }
+  };
+
+  const adjustR0 = (delta: number) => {
+    const current = parseRowValue(customMatrix[0]);
+    if (current === null) return;
+    const next = (current + delta + 256) % 256;
+    handleMatrixRowChange(0, formatBinary(next));
   };
 
   const handleConstantChange = (value: string) => {
@@ -355,14 +384,38 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
               </p>
               {customMatrix.map((row, index) => (
                 <div key={index} className="flex items-center gap-1.5 sm:gap-2">
-                  <span className="font-mono text-[10px] sm:text-xs text-text-primary w-5 sm:w-6 flex-shrink-0">R{index}:</span>
+                <span className="font-mono text-[10px] sm:text-xs text-text-primary w-5 sm:w-6 flex-shrink-0">R{index}:</span>
+                <div className="grid grid-cols-[minmax(0,1fr)_54px] items-center gap-1 sm:gap-1.5 flex-1 min-w-0">
                   <input
                     type="text"
                     value={row}
                     onChange={(e) => handleMatrixRowChange(index, e.target.value)}
-                      className="flex-1 min-w-0 px-2 sm:px-3 py-1.5 sm:py-2 bg-surface-dark border border-text-primary/20 rounded-lg font-mono text-xs sm:text-sm text-white focus:border-white focus:outline-none"
+                      className="w-full min-w-0 px-2 sm:px-3 py-1.5 sm:py-2 bg-surface-dark border border-text-primary/20 rounded-lg font-mono text-xs sm:text-sm text-white focus:border-white focus:outline-none"
                     placeholder="01010111"
                   />
+                  {index === 0 && matrixCategory === 'custom' ? (
+                    <div className="flex items-center gap-1 w-[54px] sm:w-[60px] justify-end">
+                      <button
+                        type="button"
+                        onClick={() => adjustR0(-1)}
+                        className="w-6 h-8 sm:w-7 sm:h-9 bg-white/10 border border-white/20 rounded text-sm font-mono text-white hover:bg-white/20 transition-colors flex items-center justify-center"
+                        title="Kurangi R0"
+                      >
+                        -
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => adjustR0(1)}
+                        className="w-6 h-8 sm:w-7 sm:h-9 bg-white/10 border border-white/20 rounded text-sm font-mono text-white hover:bg-white/20 transition-colors flex items-center justify-center"
+                        title="Tambah R0"
+                      >
+                        +
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-[54px] sm:w-[60px]"></div>
+                  )}
+                </div>
                   <span className="font-mono text-[10px] sm:text-xs text-text-primary w-10 sm:w-16 flex-shrink-0 text-right">
                     {(() => {
                       try {

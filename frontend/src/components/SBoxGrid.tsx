@@ -21,6 +21,9 @@ const SBoxGrid: React.FC<SBoxGridProps> = ({
 
   const getRowHeader = (row: number) => row.toString(16).toUpperCase();
   const getColHeader = (col: number) => col.toString(16).toUpperCase();
+  const decimalRows = Array.from({ length: 16 }, (_, row) =>
+    sbox.slice(row * 16, row * 16 + 16)
+  );
 
   return (
     <div className="w-full">
@@ -138,6 +141,25 @@ const SBoxGrid: React.FC<SBoxGridProps> = ({
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      </div>
+      {/* Decimal listing */}
+      <div className="mt-4 glass-effect rounded-xl p-4 border border-text-primary/10 overflow-x-auto">
+        <h4 className="font-body text-sm text-white mb-2">Nilai desimal</h4>
+        <div className="min-w-[680px]">
+          <div
+            className="font-mono text-xs text-text-primary grid gap-1 sm:gap-1.5"
+            style={{ gridTemplateColumns: 'repeat(16, minmax(0, 1fr))' }}
+          >
+            {decimalRows.flat().map((val, idx) => (
+              <span
+                key={`dec-${idx}`}
+                className="px-2 py-1 bg-white/5 rounded border border-white/10 text-center"
+              >
+                {val.toString().padStart(3, ' ')}
+              </span>
+            ))}
           </div>
         </div>
       </div>
