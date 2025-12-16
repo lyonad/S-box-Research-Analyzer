@@ -1,0 +1,355 @@
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/main.py", line 6, in <module>
+    from fastapi import FastAPI, HTTPException, File, UploadFile, Form
+ModuleNotFoundError: No module named 'fastapi'
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/main.py", line 6, in <module>
+    from fastapi import FastAPI, HTTPException, File, UploadFile, Form
+ModuleNotFoundError: No module named 'fastapi'
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/main.py", line 6, in <module>
+    from fastapi import FastAPI, HTTPException, File, UploadFile, Form
+ModuleNotFoundError: No module named 'fastapi'
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/main.py", line 6, in <module>
+    from fastapi import FastAPI, HTTPException, File, UploadFile, Form
+ModuleNotFoundError: No module named 'fastapi'
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/main.py", line 6, in <module>
+    from fastapi import FastAPI, HTTPException, File, UploadFile, Form
+ModuleNotFoundError: No module named 'fastapi'
+[2025-12-16 10:14:57 +0000] [413797] [INFO] Starting gunicorn 23.0.0
+[2025-12-16 10:14:57 +0000] [413797] [INFO] Listening at: http://0.0.0.0:5000 (413797)
+[2025-12-16 10:14:57 +0000] [413797] [INFO] Using worker: gthread
+[2025-12-16 10:14:57 +0000] [413813] [INFO] Booting worker with pid: 413813
+[2025-12-16 10:15:01 +0000] [413813] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/gthread.py", line 94, in init_process
+    super().init_process()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/util.py", line 370, in import_app
+    mod = importlib.import_module(module)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 986, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 680, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 850, in exec_module
+  File "<frozen importlib._bootstrap>", line 228, in _call_with_frames_removed
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/main.py", line 17, in <module>
+    from PIL import Image
+ModuleNotFoundError: No module named 'PIL'
+[2025-12-16 10:15:01 +0000] [413813] [INFO] Worker exiting (pid: 413813)
+[2025-12-16 10:15:01 +0000] [413797] [ERROR] Worker (pid:413813) exited with code 3
+[2025-12-16 10:15:01 +0000] [413797] [ERROR] Shutting down: Master
+[2025-12-16 10:15:01 +0000] [413797] [ERROR] Reason: Worker failed to boot.
+[2025-12-16 10:19:54 +0000] [414181] [INFO] Starting gunicorn 23.0.0
+[2025-12-16 10:19:54 +0000] [414181] [INFO] Listening at: http://0.0.0.0:5000 (414181)
+[2025-12-16 10:19:54 +0000] [414181] [INFO] Using worker: gthread
+[2025-12-16 10:19:54 +0000] [414192] [INFO] Booting worker with pid: 414192
+[2025-12-16 10:23:05 +0000] [414181] [INFO] Handling signal: term
+[2025-12-16 10:23:06 +0000] [414192] [INFO] Worker exiting (pid: 414192)
+[2025-12-16 10:23:07 +0000] [414181] [INFO] Shutting down: Master
+[2025-12-16 10:38:59 +0000] [417121] [INFO] Starting gunicorn 23.0.0
+[2025-12-16 10:38:59 +0000] [417121] [INFO] Listening at: http://0.0.0.0:5000 (417121)
+[2025-12-16 10:38:59 +0000] [417121] [INFO] Using worker: uvicorn.workers.UvicornWorker
+[2025-12-16 10:38:59 +0000] [417133] [INFO] Booting worker with pid: 417133
+[2025-12-16 10:38:59 +0000] [417133] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/util.py", line 370, in import_app
+    mod = importlib.import_module(module)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 984, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'main'
+[2025-12-16 10:38:59 +0000] [417133] [INFO] Worker exiting (pid: 417133)
+[2025-12-16 10:38:59 +0000] [417138] [INFO] Booting worker with pid: 417138
+[2025-12-16 10:38:59 +0000] [417138] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/util.py", line 370, in import_app
+    mod = importlib.import_module(module)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 984, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'main'
+[2025-12-16 10:38:59 +0000] [417138] [INFO] Worker exiting (pid: 417138)
+[2025-12-16 10:38:59 +0000] [417139] [INFO] Booting worker with pid: 417139
+[2025-12-16 10:38:59 +0000] [417139] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/util.py", line 370, in import_app
+    mod = importlib.import_module(module)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 984, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'main'
+[2025-12-16 10:38:59 +0000] [417139] [INFO] Worker exiting (pid: 417139)
+[2025-12-16 10:38:59 +0000] [417145] [INFO] Booting worker with pid: 417145
+[2025-12-16 10:38:59 +0000] [417145] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/util.py", line 370, in import_app
+    mod = importlib.import_module(module)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 984, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'main'
+[2025-12-16 10:38:59 +0000] [417145] [INFO] Worker exiting (pid: 417145)
+[2025-12-16 10:38:59 +0000] [417121] [ERROR] Worker (pid:417133) exited with code 3
+[2025-12-16 10:38:59 +0000] [417121] [ERROR] Worker (pid:417138) was sent SIGTERM!
+[2025-12-16 10:38:59 +0000] [417121] [ERROR] Worker (pid:417145) was sent SIGTERM!
+[2025-12-16 10:38:59 +0000] [417121] [ERROR] Worker (pid:417139) was sent SIGTERM!
+[2025-12-16 10:38:59 +0000] [417121] [ERROR] Shutting down: Master
+[2025-12-16 10:38:59 +0000] [417121] [ERROR] Reason: Worker failed to boot.
+[2025-12-16 10:42:31 +0000] [417607] [INFO] Starting gunicorn 23.0.0
+[2025-12-16 10:42:31 +0000] [417607] [INFO] Listening at: http://0.0.0.0:5000 (417607)
+[2025-12-16 10:42:31 +0000] [417607] [INFO] Using worker: uvicorn.workers.UvicornWorker
+[2025-12-16 10:42:31 +0000] [417632] [INFO] Booting worker with pid: 417632
+[2025-12-16 10:42:31 +0000] [417637] [INFO] Booting worker with pid: 417637
+[2025-12-16 10:42:31 +0000] [417638] [INFO] Booting worker with pid: 417638
+[2025-12-16 10:42:31 +0000] [417639] [INFO] Booting worker with pid: 417639
+[2025-12-16 10:42:36 +0000] [417637] [INFO] Started server process [417637]
+[2025-12-16 10:42:36 +0000] [417637] [INFO] Waiting for application startup.
+[2025-12-16 10:42:36 +0000] [417637] [INFO] Application startup complete.
+[2025-12-16 10:42:37 +0000] [417638] [INFO] Started server process [417638]
+[2025-12-16 10:42:37 +0000] [417638] [INFO] Waiting for application startup.
+[2025-12-16 10:42:37 +0000] [417638] [INFO] Application startup complete.
+[2025-12-16 10:42:37 +0000] [417632] [INFO] Started server process [417632]
+[2025-12-16 10:42:37 +0000] [417632] [INFO] Waiting for application startup.
+[2025-12-16 10:42:37 +0000] [417632] [INFO] Application startup complete.
+[2025-12-16 10:42:37 +0000] [417639] [INFO] Started server process [417639]
+[2025-12-16 10:42:37 +0000] [417639] [INFO] Waiting for application startup.
+[2025-12-16 10:42:37 +0000] [417639] [INFO] Application startup complete.
+[2025-12-16 10:48:32 +0000] [417632] [WARNING] Invalid HTTP request received.
+[2025-12-16 10:48:32 +0000] [417632] [WARNING] Invalid HTTP request received.
+[2025-12-16 11:27:47 +0000] [417607] [INFO] Handling signal: term
+[2025-12-16 11:27:47 +0000] [417639] [INFO] Shutting down
+[2025-12-16 11:27:48 +0000] [417638] [INFO] Shutting down
+[2025-12-16 11:27:48 +0000] [417632] [INFO] Shutting down
+[2025-12-16 11:27:48 +0000] [417637] [INFO] Shutting down
+[2025-12-16 11:27:48 +0000] [417639] [INFO] Waiting for application shutdown.
+[2025-12-16 11:27:48 +0000] [417639] [INFO] Application shutdown complete.
+[2025-12-16 11:27:48 +0000] [417639] [INFO] Finished server process [417639]
+[2025-12-16 11:27:48 +0000] [417607] [ERROR] Worker (pid:417639) was sent SIGTERM!
+[2025-12-16 11:27:48 +0000] [417638] [INFO] Waiting for application shutdown.
+[2025-12-16 11:27:48 +0000] [417632] [INFO] Waiting for application shutdown.
+[2025-12-16 11:27:48 +0000] [417638] [INFO] Application shutdown complete.
+[2025-12-16 11:27:48 +0000] [417638] [INFO] Finished server process [417638]
+[2025-12-16 11:27:48 +0000] [417632] [INFO] Application shutdown complete.
+[2025-12-16 11:27:48 +0000] [417632] [INFO] Finished server process [417632]
+[2025-12-16 11:27:48 +0000] [417607] [ERROR] Worker (pid:417638) was sent SIGTERM!
+[2025-12-16 11:27:48 +0000] [417637] [INFO] Waiting for application shutdown.
+[2025-12-16 11:27:48 +0000] [417637] [INFO] Application shutdown complete.
+[2025-12-16 11:27:48 +0000] [417607] [ERROR] Worker (pid:417632) was sent SIGTERM!
+[2025-12-16 11:27:48 +0000] [417637] [INFO] Finished server process [417637]
+[2025-12-16 11:27:48 +0000] [417607] [ERROR] Worker (pid:417637) was sent SIGTERM!
+[2025-12-16 11:27:48 +0000] [417607] [INFO] Shutting down: Master
+[2025-12-16 11:27:52 +0000] [422808] [INFO] Starting gunicorn 23.0.0
+[2025-12-16 11:27:52 +0000] [422808] [INFO] Listening at: http://0.0.0.0:5000 (422808)
+[2025-12-16 11:27:52 +0000] [422808] [INFO] Using worker: uvicorn.workers.UvicornWorker
+[2025-12-16 11:27:52 +0000] [422843] [INFO] Booting worker with pid: 422843
+[2025-12-16 11:27:52 +0000] [422844] [INFO] Booting worker with pid: 422844
+[2025-12-16 11:27:52 +0000] [422845] [INFO] Booting worker with pid: 422845
+[2025-12-16 11:27:52 +0000] [422846] [INFO] Booting worker with pid: 422846
+[2025-12-16 11:27:58 +0000] [422843] [INFO] Started server process [422843]
+[2025-12-16 11:27:58 +0000] [422843] [INFO] Waiting for application startup.
+[2025-12-16 11:27:58 +0000] [422845] [INFO] Started server process [422845]
+[2025-12-16 11:27:58 +0000] [422845] [INFO] Waiting for application startup.
+[2025-12-16 11:27:58 +0000] [422843] [INFO] Application startup complete.
+[2025-12-16 11:27:58 +0000] [422845] [INFO] Application startup complete.
+[2025-12-16 11:27:58 +0000] [422844] [INFO] Started server process [422844]
+[2025-12-16 11:27:58 +0000] [422844] [INFO] Waiting for application startup.
+[2025-12-16 11:27:58 +0000] [422844] [INFO] Application startup complete.
+[2025-12-16 11:27:58 +0000] [422846] [INFO] Started server process [422846]
+[2025-12-16 11:27:58 +0000] [422846] [INFO] Waiting for application startup.
+[2025-12-16 11:27:58 +0000] [422846] [INFO] Application startup complete.
+[2025-12-16 11:43:21 +0000] [422808] [INFO] Handling signal: term
+[2025-12-16 11:43:21 +0000] [422845] [INFO] Shutting down
+[2025-12-16 11:43:21 +0000] [422843] [INFO] Shutting down
+[2025-12-16 11:43:21 +0000] [422844] [INFO] Shutting down
+[2025-12-16 11:43:21 +0000] [422846] [INFO] Shutting down
+[2025-12-16 11:43:22 +0000] [422843] [INFO] Waiting for application shutdown.
+[2025-12-16 11:43:22 +0000] [422845] [INFO] Waiting for application shutdown.
+[2025-12-16 11:43:22 +0000] [422845] [INFO] Application shutdown complete.
+[2025-12-16 11:43:22 +0000] [422843] [INFO] Application shutdown complete.
+[2025-12-16 11:43:22 +0000] [422843] [INFO] Finished server process [422843]
+[2025-12-16 11:43:22 +0000] [422845] [INFO] Finished server process [422845]
+[2025-12-16 11:43:22 +0000] [422844] [INFO] Waiting for application shutdown.
+[2025-12-16 11:43:22 +0000] [422844] [INFO] Application shutdown complete.
+[2025-12-16 11:43:22 +0000] [422844] [INFO] Finished server process [422844]
+[2025-12-16 11:43:22 +0000] [422846] [INFO] Waiting for application shutdown.
+[2025-12-16 11:43:22 +0000] [422846] [INFO] Application shutdown complete.
+[2025-12-16 11:43:22 +0000] [422846] [INFO] Finished server process [422846]
+[2025-12-16 11:43:22 +0000] [422808] [ERROR] Worker (pid:422844) was sent SIGTERM!
+[2025-12-16 11:43:22 +0000] [422808] [ERROR] Worker (pid:422846) was sent SIGTERM!
+[2025-12-16 11:43:22 +0000] [422808] [ERROR] Worker (pid:422843) was sent SIGTERM!
+[2025-12-16 11:43:22 +0000] [422808] [ERROR] Worker (pid:422845) was sent SIGTERM!
+[2025-12-16 11:43:22 +0000] [422808] [INFO] Shutting down: Master
+[2025-12-16 11:43:26 +0000] [424468] [INFO] Starting gunicorn 23.0.0
+[2025-12-16 11:43:26 +0000] [424468] [INFO] Listening at: http://0.0.0.0:5000 (424468)
+[2025-12-16 11:43:26 +0000] [424468] [INFO] Using worker: uvicorn.workers.UvicornWorker
+[2025-12-16 11:43:26 +0000] [424495] [INFO] Booting worker with pid: 424495
+[2025-12-16 11:43:27 +0000] [424499] [INFO] Booting worker with pid: 424499
+[2025-12-16 11:43:27 +0000] [424500] [INFO] Booting worker with pid: 424500
+[2025-12-16 11:43:27 +0000] [424501] [INFO] Booting worker with pid: 424501
+[2025-12-16 11:43:32 +0000] [424495] [INFO] Started server process [424495]
+[2025-12-16 11:43:32 +0000] [424495] [INFO] Waiting for application startup.
+[2025-12-16 11:43:32 +0000] [424495] [INFO] Application startup complete.
+[2025-12-16 11:43:32 +0000] [424499] [INFO] Started server process [424499]
+[2025-12-16 11:43:32 +0000] [424499] [INFO] Waiting for application startup.
+[2025-12-16 11:43:32 +0000] [424499] [INFO] Application startup complete.
+[2025-12-16 11:43:32 +0000] [424501] [INFO] Started server process [424501]
+[2025-12-16 11:43:32 +0000] [424501] [INFO] Waiting for application startup.
+[2025-12-16 11:43:32 +0000] [424501] [INFO] Application startup complete.
+[2025-12-16 11:43:32 +0000] [424500] [INFO] Started server process [424500]
+[2025-12-16 11:43:32 +0000] [424500] [INFO] Waiting for application startup.
+[2025-12-16 11:43:32 +0000] [424500] [INFO] Application startup complete.
+[2025-12-16 12:27:33 +0000] [424468] [INFO] Handling signal: term
+[2025-12-16 12:27:33 +0000] [424500] [INFO] Shutting down
+[2025-12-16 12:27:33 +0000] [424499] [INFO] Shutting down
+[2025-12-16 12:27:33 +0000] [424495] [INFO] Shutting down
+[2025-12-16 12:27:33 +0000] [424501] [INFO] Shutting down
+[2025-12-16 12:27:33 +0000] [424500] [INFO] Waiting for application shutdown.
+[2025-12-16 12:27:33 +0000] [424499] [INFO] Waiting for application shutdown.
+[2025-12-16 12:27:33 +0000] [424500] [INFO] Application shutdown complete.
+[2025-12-16 12:27:33 +0000] [424500] [INFO] Finished server process [424500]
+[2025-12-16 12:27:33 +0000] [424499] [INFO] Application shutdown complete.
+[2025-12-16 12:27:33 +0000] [424499] [INFO] Finished server process [424499]
+[2025-12-16 12:27:33 +0000] [424495] [INFO] Waiting for application shutdown.
+[2025-12-16 12:27:33 +0000] [424501] [INFO] Waiting for application shutdown.
+[2025-12-16 12:27:33 +0000] [424495] [INFO] Application shutdown complete.
+[2025-12-16 12:27:33 +0000] [424501] [INFO] Application shutdown complete.
+[2025-12-16 12:27:33 +0000] [424495] [INFO] Finished server process [424495]
+[2025-12-16 12:27:33 +0000] [424501] [INFO] Finished server process [424501]
+[2025-12-16 12:27:33 +0000] [424468] [ERROR] Worker (pid:424500) was sent SIGTERM!
+[2025-12-16 12:27:33 +0000] [424468] [ERROR] Worker (pid:424499) was sent SIGTERM!
+[2025-12-16 12:27:33 +0000] [424468] [ERROR] Worker (pid:424495) was sent SIGTERM!
+[2025-12-16 12:27:33 +0000] [424468] [ERROR] Worker (pid:424501) was sent SIGTERM!
+[2025-12-16 12:27:33 +0000] [424468] [INFO] Shutting down: Master
+[2025-12-16 12:27:37 +0000] [428334] [INFO] Starting gunicorn 23.0.0
+[2025-12-16 12:27:37 +0000] [428334] [INFO] Listening at: http://0.0.0.0:5000 (428334)
+[2025-12-16 12:27:37 +0000] [428334] [INFO] Using worker: uvicorn.workers.UvicornWorker
+[2025-12-16 12:27:37 +0000] [428375] [INFO] Booting worker with pid: 428375
+[2025-12-16 12:27:37 +0000] [428376] [INFO] Booting worker with pid: 428376
+[2025-12-16 12:27:37 +0000] [428377] [INFO] Booting worker with pid: 428377
+[2025-12-16 12:27:37 +0000] [428378] [INFO] Booting worker with pid: 428378
+[2025-12-16 12:27:43 +0000] [428377] [INFO] Started server process [428377]
+[2025-12-16 12:27:43 +0000] [428375] [INFO] Started server process [428375]
+[2025-12-16 12:27:43 +0000] [428378] [INFO] Started server process [428378]
+[2025-12-16 12:27:43 +0000] [428376] [INFO] Started server process [428376]
+[2025-12-16 12:27:43 +0000] [428375] [INFO] Waiting for application startup.
+[2025-12-16 12:27:43 +0000] [428376] [INFO] Waiting for application startup.
+[2025-12-16 12:27:43 +0000] [428378] [INFO] Waiting for application startup.
+[2025-12-16 12:27:43 +0000] [428377] [INFO] Waiting for application startup.
+[2025-12-16 12:27:43 +0000] [428375] [INFO] Application startup complete.
+[2025-12-16 12:27:43 +0000] [428376] [INFO] Application startup complete.
+[2025-12-16 12:27:43 +0000] [428377] [INFO] Application startup complete.
+[2025-12-16 12:27:43 +0000] [428378] [INFO] Application startup complete.
+[2025-12-16 13:02:46 +0000] [428334] [CRITICAL] WORKER TIMEOUT (pid:428376)
+[2025-12-16 13:02:46 +0000] [428334] [ERROR] Worker (pid:428376) was sent SIGABRT!
+[2025-12-16 13:02:46 +0000] [431719] [INFO] Booting worker with pid: 431719
+[2025-12-16 13:02:52 +0000] [431719] [INFO] Started server process [431719]
+[2025-12-16 13:02:52 +0000] [431719] [INFO] Waiting for application startup.
+[2025-12-16 13:02:52 +0000] [431719] [INFO] Application startup complete.
+[2025-12-16 13:12:47 +0000] [428334] [CRITICAL] WORKER TIMEOUT (pid:428375)
+[2025-12-16 13:12:47 +0000] [428334] [ERROR] Worker (pid:428375) was sent SIGABRT!
+[2025-12-16 13:12:47 +0000] [432264] [INFO] Booting worker with pid: 432264
+[2025-12-16 13:12:51 +0000] [432264] [INFO] Started server process [432264]
+[2025-12-16 13:12:51 +0000] [432264] [INFO] Waiting for application startup.
+[2025-12-16 13:12:51 +0000] [432264] [INFO] Application startup complete.
+[2025-12-16 13:12:52 +0000] [428334] [CRITICAL] WORKER TIMEOUT (pid:431719)
+[2025-12-16 13:12:52 +0000] [428334] [ERROR] Worker (pid:431719) was sent SIGABRT!
+[2025-12-16 13:12:52 +0000] [432276] [INFO] Booting worker with pid: 432276
+[2025-12-16 13:12:56 +0000] [432276] [INFO] Started server process [432276]
+[2025-12-16 13:12:56 +0000] [432276] [INFO] Waiting for application startup.
+[2025-12-16 13:12:56 +0000] [432276] [INFO] Application startup complete.
+[2025-12-16 13:27:48 +0000] [428334] [CRITICAL] WORKER TIMEOUT (pid:428378)
+[2025-12-16 13:27:48 +0000] [428334] [ERROR] Worker (pid:428378) was sent SIGABRT!
+[2025-12-16 13:27:48 +0000] [433100] [INFO] Booting worker with pid: 433100
+[2025-12-16 13:27:52 +0000] [428334] [CRITICAL] WORKER TIMEOUT (pid:432264)
+[2025-12-16 13:27:52 +0000] [428334] [ERROR] Worker (pid:432264) was sent SIGABRT!
+[2025-12-16 13:27:52 +0000] [433100] [INFO] Started server process [433100]
+[2025-12-16 13:27:52 +0000] [433100] [INFO] Waiting for application startup.
+[2025-12-16 13:27:52 +0000] [433104] [INFO] Booting worker with pid: 433104
+[2025-12-16 13:27:52 +0000] [433100] [INFO] Application startup complete.
+[2025-12-16 13:27:56 +0000] [433104] [INFO] Started server process [433104]
+[2025-12-16 13:27:56 +0000] [433104] [INFO] Waiting for application startup.
+[2025-12-16 13:27:56 +0000] [433104] [INFO] Application startup complete.
+[2025-12-16 13:27:57 +0000] [428334] [CRITICAL] WORKER TIMEOUT (pid:432276)
+[2025-12-16 13:27:57 +0000] [428334] [ERROR] Worker (pid:432276) was sent SIGABRT!
+[2025-12-16 13:27:57 +0000] [433148] [INFO] Booting worker with pid: 433148
+[2025-12-16 13:28:01 +0000] [433148] [INFO] Started server process [433148]
+[2025-12-16 13:28:01 +0000] [433148] [INFO] Waiting for application startup.
+[2025-12-16 13:28:01 +0000] [433148] [INFO] Application startup complete.
+[2025-12-16 13:32:49 +0000] [428334] [CRITICAL] WORKER TIMEOUT (pid:428377)
+[2025-12-16 13:32:49 +0000] [428334] [ERROR] Worker (pid:428377) was sent SIGABRT!
+[2025-12-16 13:32:49 +0000] [433425] [INFO] Booting worker with pid: 433425
+[2025-12-16 13:32:53 +0000] [433425] [INFO] Started server process [433425]
+[2025-12-16 13:32:53 +0000] [433425] [INFO] Waiting for application startup.
+[2025-12-16 13:32:53 +0000] [433425] [INFO] Application startup complete.

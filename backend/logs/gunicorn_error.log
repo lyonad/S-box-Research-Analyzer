@@ -1,0 +1,526 @@
+nohup: failed to run command '/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/bin/gunicorn': No such file or directory
+nohup: failed to run command '/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/bin/gunicorn': No such file or directory
+nohup: failed to run command '/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/bin/gunicorn': No such file or directory
+nohup: failed to run command '/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/bin/gunicorn': No such file or directory
+[2025-12-16 10:23:13 +0000] [414576] [INFO] Starting gunicorn 23.0.0
+[2025-12-16 10:23:13 +0000] [414576] [INFO] Listening at: http://0.0.0.0:5000 (414576)
+[2025-12-16 10:23:13 +0000] [414576] [INFO] Using worker: uvicorn.workers.UvicornWorker
+[2025-12-16 10:23:13 +0000] [414604] [INFO] Booting worker with pid: 414604
+[2025-12-16 10:23:13 +0000] [414604] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/util.py", line 370, in import_app
+    mod = importlib.import_module(module)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 984, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'main'
+[2025-12-16 10:23:13 +0000] [414604] [INFO] Worker exiting (pid: 414604)
+[2025-12-16 10:23:13 +0000] [414608] [INFO] Booting worker with pid: 414608
+[2025-12-16 10:23:13 +0000] [414609] [INFO] Booting worker with pid: 414609
+[2025-12-16 10:23:13 +0000] [414608] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/util.py", line 370, in import_app
+    mod = importlib.import_module(module)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 984, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'main'
+[2025-12-16 10:23:13 +0000] [414608] [INFO] Worker exiting (pid: 414608)
+[2025-12-16 10:23:13 +0000] [414609] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/util.py", line 370, in import_app
+    mod = importlib.import_module(module)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 984, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'main'
+[2025-12-16 10:23:13 +0000] [414609] [INFO] Worker exiting (pid: 414609)
+[2025-12-16 10:23:13 +0000] [414611] [INFO] Booting worker with pid: 414611
+[2025-12-16 10:23:13 +0000] [414611] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/util.py", line 370, in import_app
+    mod = importlib.import_module(module)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 984, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'main'
+[2025-12-16 10:23:13 +0000] [414611] [INFO] Worker exiting (pid: 414611)
+[2025-12-16 10:23:13 +0000] [414576] [ERROR] Worker (pid:414604) exited with code 3
+[2025-12-16 10:23:13 +0000] [414576] [ERROR] Worker (pid:414609) was sent SIGTERM!
+--- Logging error ---
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 208, in run
+    self.sleep()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 359, in sleep
+    ready = select.select([self.PIPE[0]], [], [], 1.0)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 241, in handle_chld
+    self.reap_workers()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 529, in reap_workers
+    raise HaltServer(reason, self.WORKER_BOOT_ERROR)
+gunicorn.errors.HaltServer: <HaltServer 'Worker failed to boot.' 3>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/logging/__init__.py", line 1086, in emit
+    stream.write(msg + self.terminator)
+RuntimeError: reentrant call inside <_io.BufferedWriter name='<stderr>'>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/logging/__init__.py", line 1086, in emit
+    stream.write(msg + self.terminator)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 241, in handle_chld
+    self.reap_workers()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 553, in reap_workers
+    self.log.error(msg)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/glogging.py", line 271, in error
+    self.error_log.error(msg, *args, **kwargs)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/logging/__init__.py", line 1475, in error
+    self._log(ERROR, msg, args, **kwargs)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/logging/__init__.py", line 1589, in _log
+    self.handle(record)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/logging/__init__.py", line 1599, in handle
+    self.callHandlers(record)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/logging/__init__.py", line 1661, in callHandlers
+    hdlr.handle(record)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/logging/__init__.py", line 952, in handle
+    self.emit(record)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/logging/__init__.py", line 1091, in emit
+    self.handleError(record)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/logging/__init__.py", line 1004, in handleError
+    sys.stderr.write('--- Logging error ---\n')
+RuntimeError: reentrant call inside <_io.BufferedWriter name='<stderr>'>
+Call stack:
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/bin/gunicorn", line 7, in <module>
+    sys.exit(run())
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 66, in run
+    WSGIApplication("%(prog)s [OPTIONS] [APP_MODULE]", prog=prog).run()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/base.py", line 235, in run
+    super().run()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/base.py", line 71, in run
+    Arbiter(self).run()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 228, in run
+    self.halt(reason=inst.reason, exit_status=inst.exit_status)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 341, in halt
+    self.stop()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 395, in stop
+    time.sleep(0.1)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 241, in handle_chld
+    self.reap_workers()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 530, in reap_workers
+    if exitcode == self.APP_LOAD_ERROR:
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 241, in handle_chld
+    self.reap_workers()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 553, in reap_workers
+    self.log.error(msg)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/glogging.py", line 271, in error
+    self.error_log.error(msg, *args, **kwargs)
+Message: 'Worker (pid:414609) was sent SIGTERM!'
+Arguments: ()
+[2025-12-16 10:23:13 +0000] [414576] [ERROR] Worker (pid:414611) was sent SIGTERM!
+[2025-12-16 10:23:43 +0000] [414576] [ERROR] Shutting down: Master
+[2025-12-16 10:23:43 +0000] [414576] [ERROR] Reason: Worker failed to boot.
+[2025-12-16 10:24:31 +0000] [415030] [INFO] Starting gunicorn 23.0.0
+[2025-12-16 10:24:31 +0000] [415030] [INFO] Listening at: http://0.0.0.0:5000 (415030)
+[2025-12-16 10:24:31 +0000] [415030] [INFO] Using worker: uvicorn.workers.UvicornWorker
+[2025-12-16 10:24:31 +0000] [415054] [INFO] Booting worker with pid: 415054
+[2025-12-16 10:24:31 +0000] [415054] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/util.py", line 370, in import_app
+    mod = importlib.import_module(module)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 984, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'main'
+[2025-12-16 10:24:31 +0000] [415054] [INFO] Worker exiting (pid: 415054)
+[2025-12-16 10:24:31 +0000] [415056] [INFO] Booting worker with pid: 415056
+[2025-12-16 10:24:31 +0000] [415056] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/util.py", line 370, in import_app
+    mod = importlib.import_module(module)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 984, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'main'
+[2025-12-16 10:24:31 +0000] [415056] [INFO] Worker exiting (pid: 415056)
+[2025-12-16 10:24:31 +0000] [415061] [INFO] Booting worker with pid: 415061
+[2025-12-16 10:24:31 +0000] [415061] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/util.py", line 370, in import_app
+    mod = importlib.import_module(module)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 984, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'main'
+[2025-12-16 10:24:31 +0000] [415061] [INFO] Worker exiting (pid: 415061)
+[2025-12-16 10:24:31 +0000] [415062] [INFO] Booting worker with pid: 415062
+[2025-12-16 10:24:31 +0000] [415062] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/util.py", line 370, in import_app
+    mod = importlib.import_module(module)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 984, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'main'
+[2025-12-16 10:24:31 +0000] [415062] [INFO] Worker exiting (pid: 415062)
+[2025-12-16 10:24:31 +0000] [415030] [ERROR] Worker (pid:415054) exited with code 3
+[2025-12-16 10:24:31 +0000] [415030] [ERROR] Worker (pid:415056) was sent SIGTERM!
+[2025-12-16 10:24:31 +0000] [415030] [ERROR] Worker (pid:415061) was sent SIGTERM!
+[2025-12-16 10:24:31 +0000] [415030] [ERROR] Worker (pid:415062) was sent SIGTERM!
+[2025-12-16 10:24:31 +0000] [415030] [ERROR] Shutting down: Master
+[2025-12-16 10:24:31 +0000] [415030] [ERROR] Reason: Worker failed to boot.
+[2025-12-16 10:25:31 +0000] [415261] [INFO] Starting gunicorn 23.0.0
+[2025-12-16 10:25:31 +0000] [415261] [INFO] Listening at: http://0.0.0.0:5000 (415261)
+[2025-12-16 10:25:31 +0000] [415261] [INFO] Using worker: uvicorn.workers.UvicornWorker
+[2025-12-16 10:25:31 +0000] [415284] [INFO] Booting worker with pid: 415284
+[2025-12-16 10:25:31 +0000] [415284] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/util.py", line 370, in import_app
+    mod = importlib.import_module(module)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 984, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'main'
+[2025-12-16 10:25:31 +0000] [415284] [INFO] Worker exiting (pid: 415284)
+[2025-12-16 10:25:31 +0000] [415292] [INFO] Booting worker with pid: 415292
+[2025-12-16 10:25:31 +0000] [415292] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/util.py", line 370, in import_app
+    mod = importlib.import_module(module)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 984, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'main'
+[2025-12-16 10:25:31 +0000] [415292] [INFO] Worker exiting (pid: 415292)
+[2025-12-16 10:25:31 +0000] [415294] [INFO] Booting worker with pid: 415294
+[2025-12-16 10:25:31 +0000] [415294] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/util.py", line 370, in import_app
+    mod = importlib.import_module(module)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 984, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'main'
+[2025-12-16 10:25:31 +0000] [415294] [INFO] Worker exiting (pid: 415294)
+[2025-12-16 10:25:31 +0000] [415299] [INFO] Booting worker with pid: 415299
+[2025-12-16 10:25:31 +0000] [415299] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/util.py", line 370, in import_app
+    mod = importlib.import_module(module)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 984, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'main'
+[2025-12-16 10:25:31 +0000] [415299] [INFO] Worker exiting (pid: 415299)
+[2025-12-16 10:25:31 +0000] [415261] [ERROR] Worker (pid:415284) exited with code 3
+[2025-12-16 10:25:31 +0000] [415261] [ERROR] Worker (pid:415292) was sent SIGTERM!
+[2025-12-16 10:25:31 +0000] [415261] [ERROR] Worker (pid:415294) was sent SIGTERM!
+[2025-12-16 10:25:31 +0000] [415261] [ERROR] Worker (pid:415299) was sent SIGTERM!
+[2025-12-16 10:25:31 +0000] [415261] [ERROR] Shutting down: Master
+[2025-12-16 10:25:31 +0000] [415261] [ERROR] Reason: Worker failed to boot.
+[2025-12-16 10:36:57 +0000] [416812] [INFO] Starting gunicorn 23.0.0
+[2025-12-16 10:36:57 +0000] [416812] [INFO] Listening at: http://0.0.0.0:5000 (416812)
+[2025-12-16 10:36:57 +0000] [416812] [INFO] Using worker: uvicorn.workers.UvicornWorker
+[2025-12-16 10:36:57 +0000] [416828] [INFO] Booting worker with pid: 416828
+[2025-12-16 10:36:57 +0000] [416828] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/util.py", line 370, in import_app
+    mod = importlib.import_module(module)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 984, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'main'
+[2025-12-16 10:36:57 +0000] [416828] [INFO] Worker exiting (pid: 416828)
+[2025-12-16 10:36:57 +0000] [416830] [INFO] Booting worker with pid: 416830
+[2025-12-16 10:36:57 +0000] [416830] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/util.py", line 370, in import_app
+    mod = importlib.import_module(module)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 984, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'main'
+[2025-12-16 10:36:57 +0000] [416830] [INFO] Worker exiting (pid: 416830)
+[2025-12-16 10:36:57 +0000] [416835] [INFO] Booting worker with pid: 416835
+[2025-12-16 10:36:57 +0000] [416836] [INFO] Booting worker with pid: 416836
+[2025-12-16 10:36:57 +0000] [416835] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/util.py", line 370, in import_app
+    mod = importlib.import_module(module)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 984, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'main'
+[2025-12-16 10:36:57 +0000] [416835] [INFO] Worker exiting (pid: 416835)
+[2025-12-16 10:36:58 +0000] [416836] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/util.py", line 370, in import_app
+    mod = importlib.import_module(module)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 984, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'main'
+[2025-12-16 10:36:58 +0000] [416836] [INFO] Worker exiting (pid: 416836)
+[2025-12-16 10:36:58 +0000] [416812] [ERROR] Worker (pid:416828) exited with code 3
+[2025-12-16 10:36:58 +0000] [416812] [ERROR] Worker (pid:416836) was sent SIGTERM!
+[2025-12-16 10:36:58 +0000] [416812] [ERROR] Worker (pid:416835) was sent SIGTERM!
+[2025-12-16 10:36:58 +0000] [416812] [ERROR] Worker (pid:416830) exited with code 3
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 208, in run
+    self.sleep()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 359, in sleep
+    ready = select.select([self.PIPE[0]], [], [], 1.0)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 241, in handle_chld
+    self.reap_workers()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 529, in reap_workers
+    raise HaltServer(reason, self.WORKER_BOOT_ERROR)
+gunicorn.errors.HaltServer: <HaltServer 'Worker failed to boot.' 3>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/bin/gunicorn", line 7, in <module>
+    sys.exit(run())
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 66, in run
+    WSGIApplication("%(prog)s [OPTIONS] [APP_MODULE]", prog=prog).run()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/base.py", line 235, in run
+    super().run()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/app/base.py", line 71, in run
+    Arbiter(self).run()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 228, in run
+    self.halt(reason=inst.reason, exit_status=inst.exit_status)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 341, in halt
+    self.stop()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 395, in stop
+    time.sleep(0.1)
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 241, in handle_chld
+    self.reap_workers()
+  File "/www/wwwroot/S-box-Research-Analyzer/backend/648ac3048140939f75d382331706b8d6_venv/lib/python3.9/site-packages/gunicorn/arbiter.py", line 529, in reap_workers
+    raise HaltServer(reason, self.WORKER_BOOT_ERROR)
+gunicorn.errors.HaltServer: <HaltServer 'Worker failed to boot.' 3>

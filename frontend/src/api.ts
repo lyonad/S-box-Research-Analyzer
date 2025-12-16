@@ -5,7 +5,7 @@
 import axios from 'axios';
 import { SBox, AnalysisResults, ComparisonData, EncryptRequest, EncryptResponse, DecryptRequest, DecryptResponse } from './types';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'https://aml-s9xx-box.tail31204e.ts.net';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

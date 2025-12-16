@@ -83,7 +83,7 @@ const ImageEncryptionPanel: React.FC<ImageEncryptionPanelProps> = ({
         formData.append('custom_sbox', JSON.stringify(customSBox));
       }
 
-      const response = await fetch('http://localhost:8000/encrypt-image', {
+      const response = await fetch('https://aml-s9xx-box.tail31204e.ts.net/encrypt-image', {
         method: 'POST',
         body: formData,
       });
@@ -160,7 +160,7 @@ const ImageEncryptionPanel: React.FC<ImageEncryptionPanelProps> = ({
         formData.append('custom_sbox', JSON.stringify(customSBox));
       }
 
-      const response = await fetch('http://localhost:8000/decrypt-image', {
+      const response = await fetch('https://aml-s9xx-box.tail31204e.ts.net/decrypt-image', {
         method: 'POST',
         body: formData,
       });

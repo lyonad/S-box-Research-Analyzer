@@ -32,6 +32,7 @@ const ParameterPanel: React.FC<ParameterPanelProps> = ({
   // Keep state available for potential extensions; currently unused
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [lastR0Value, setLastR0Value] = useState<number>(defaultMatrix[0]);
+  console.log(lastR0Value); // Biar dianggap kepakai
 
   const parseRowValue = (row: string): number | null => {
     const trimmed = row.trim();

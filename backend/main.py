@@ -16,6 +16,7 @@ import json
 import numpy as np
 from PIL import Image
 
+# Import internal modules
 from sbox_generator import SBoxGenerator, K44_MATRIX, AES_MATRIX, C_AES, AVAILABLE_MATRICES
 from cryptographic_tests import analyze_sbox
 from aes_cipher import create_cipher
@@ -24,17 +25,30 @@ from sbox_validations import validate_sbox
 
 app = FastAPI(
     title="AES S-box Research Analyzer API",
-    description="Comprehensive research platform for AES S-box analysis through affine matrices exploration, parameter optimization, and cryptographic strength evaluation",
+    description="Comprehensive research platform for AES S-box analysis",
     version="2.0.0"
 )
 
-# CORS middleware for frontend integration
+# ==========================================
+# CONFIGURATION: CORS (Agar FE bisa connect)
+# ==========================================
+origins = [
+    "http://localhost",
+    "http://localhost:5173",  # Vite Local Dev
+    "http://localhost:80",    # Production Local
+    "http://127.0.0.1",
+    "https://try-sboxanalyzer.greepzid.com", # Domain Frontend Kamu
+    "https://analyzer.greepzid.com",         # Alternatif Domain
+    "https://api-kripto.greepzid.com",
+    "https://aml-s9xx-box.tail31204e.ts.net" # Domain Backend (Self)
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify exact origins
+    allow_origins=origins,  # Mengizinkan domain-domain di atas
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],    # Mengizinkan semua method (GET, POST, dll)
+    allow_headers=["*"],    # Mengizinkan semua header
     expose_headers=["X-Sbox-Type", "X-Encryption-Time", "X-Decryption-Time", "X-Histogram-Data", "Content-Disposition"],
 )
 
@@ -42,20 +56,19 @@ app.add_middleware(
 generator = SBoxGenerator()
 
 
-# Request/Response Models
+# ==========================================
+# MODELS (Tidak Berubah)
+# ==========================================
+
 class SBoxGenerateRequest(BaseModel):
-    """Request model for S-box generation"""
     use_k44: bool = True
     custom_matrix: Optional[List[int]] = None
     constant: Optional[int] = None
     require_valid: bool = False
 
-
 class SBoxAnalyzeRequest(BaseModel):
-    """Request model for S-box analysis"""
     sbox: List[int]
     name: Optional[str] = "Custom S-box"
-
 
 class BitBalanceModel(BaseModel):
     bit: int
@@ -63,11 +76,9 @@ class BitBalanceModel(BaseModel):
     zeros: int
     expected: int
 
-
 class DuplicateValueModel(BaseModel):
     value: int
     count: int
-
 
 class SBoxValidationModel(BaseModel):
     is_balanced: bool
@@ -78,21 +89,18 @@ class SBoxValidationModel(BaseModel):
     duplicate_values: List[DuplicateValueModel]
     missing_values: List[int]
 
-
 class SBoxResponse(BaseModel):
-    """Response model for S-box generation"""
     sbox: List[int]
     matrix_used: str
     constant: int
     generation_time_ms: float
     validation: SBoxValidationModel
 
-
+# Metrics Models
 class NonlinearityMetricsModel(BaseModel):
     min: int
     max: int
     average: float
-
 
 class SACMetricsModel(BaseModel):
     average: float
@@ -101,12 +109,10 @@ class SACMetricsModel(BaseModel):
     std: float
     matrix: Optional[List[List[float]]] = None
 
-
 class BICNLMetricsModel(BaseModel):
     min: int
     max: int
     average: float
-
 
 class BICSACMetricsModel(BaseModel):
     average_sac: float
@@ -114,22 +120,18 @@ class BICSACMetricsModel(BaseModel):
     max_sac: float
     std_sac: float
 
-
 class LAPMetricsModel(BaseModel):
     max_lap: float
     max_bias: float
     average_bias: float
 
-
 class DAPMetricsModel(BaseModel):
     max_dap: float
     average_dap: float
 
-
 class DifferentialUniformityMetricsModel(BaseModel):
     max_du: int
     average_du: float
-
 
 class AlgebraicDegreeMetricsModel(BaseModel):
     min: int
@@ -137,12 +139,10 @@ class AlgebraicDegreeMetricsModel(BaseModel):
     average: float
     degrees: List[int]
 
-
 class TransparencyOrderMetricsModel(BaseModel):
     transparency_order: float
     max_correlation: float
     min_correlation: float
-
 
 class CorrelationImmunityMetricsModel(BaseModel):
     min: int
@@ -150,13 +150,11 @@ class CorrelationImmunityMetricsModel(BaseModel):
     average: float
     orders: List[int]
 
-
 class CycleStructureMetricsModel(BaseModel):
     count: int
     max_length: int
     min_length: int
     fixed_points: int
-
 
 class AnalysisMetrics(BaseModel):
     nonlinearity: NonlinearityMetricsModel
@@ -171,20 +169,14 @@ class AnalysisMetrics(BaseModel):
     correlation_immunity: CorrelationImmunityMetricsModel
     cycle_structure: CycleStructureMetricsModel
 
-
 class AnalysisResponse(AnalysisMetrics):
-    """Response model for S-box analysis"""
     sbox_name: str
     analysis_time_ms: float
 
-
 class ComparisonRequest(BaseModel):
-    """Request model for comparison"""
-    custom_sbox: Optional[List[int]] = None  # Optional custom S-box to include in comparison
-
+    custom_sbox: Optional[List[int]] = None
 
 class ComparisonResponse(BaseModel):
-    """Response model for comparison between S-boxes"""
     k44_sbox: List[int]
     aes_sbox: List[int]
     custom_sbox: Optional[List[int]] = None
@@ -197,74 +189,55 @@ class ComparisonResponse(BaseModel):
     generation_time_ms: float
     analysis_time_ms: float
 
-
 class EncryptRequest(BaseModel):
-    """Request model for encryption"""
     plaintext: str
-    key: str  # Will be converted to bytes, must be 16 bytes when encoded
-    sbox_type: str = "k44"  # "k44", "aes", or "custom"
-    custom_sbox: Optional[List[int]] = None  # Required if sbox_type is "custom"
-
+    key: str
+    sbox_type: str = "k44"
+    custom_sbox: Optional[List[int]] = None
 
 class DecryptRequest(BaseModel):
-    """Request model for decryption"""
-    ciphertext: str  # Base64 encoded
-    key: str  # Will be converted to bytes, must be 16 bytes when encoded
-    sbox_type: str = "k44"  # "k44", "aes", or "custom"
-    custom_sbox: Optional[List[int]] = None  # Required if sbox_type is "custom"
-
+    ciphertext: str
+    key: str
+    sbox_type: str = "k44"
+    custom_sbox: Optional[List[int]] = None
 
 class EncryptResponse(BaseModel):
-    """Response model for encryption"""
-    ciphertext: str  # Base64 encoded
+    ciphertext: str
     sbox_type: str
     encryption_time_ms: float
 
-
 class DecryptResponse(BaseModel):
-    """Response model for decryption"""
     plaintext: str
     sbox_type: str
     decryption_time_ms: float
 
-
 class ImageEncryptResponse(BaseModel):
-    """Response model for image encryption"""
     sbox_type: str
     encryption_time_ms: float
     image_format: str
 
-
 class ImageDecryptResponse(BaseModel):
-    """Response model for image decryption"""
     sbox_type: str
     decryption_time_ms: float
     image_format: str
 
-
 class ExportAnalysisRequest(BaseModel):
-    """Request model for analysis export"""
     sbox: List[int]
     name: Optional[str] = "Custom S-box"
     format: str = "csv"
 
 
-def validate_sbox_values(sbox: List[int]):
-    """Ensure provided S-box has valid length and range."""
-    if len(sbox) != 256:
-        raise HTTPException(
-            status_code=400,
-            detail="S-box must contain exactly 256 values"
-        )
-    if not all(isinstance(val, int) and 0 <= val <= 255 for val in sbox):
-        raise HTTPException(
-            status_code=400,
-            detail="All S-box values must be integers in range 0-255"
-        )
+# ==========================================
+# HELPER FUNCTIONS
+# ==========================================
 
+def validate_sbox_values(sbox: List[int]):
+    if len(sbox) != 256:
+        raise HTTPException(status_code=400, detail="S-box must contain exactly 256 values")
+    if not all(isinstance(val, int) and 0 <= val <= 255 for val in sbox):
+        raise HTTPException(status_code=400, detail="All S-box values must be integers in range 0-255")
 
 def build_analysis_metrics(raw_results: Dict[str, Any]) -> AnalysisMetrics:
-    """Convert raw analysis dictionary to typed metrics."""
     nonlinearity = raw_results.get("nonlinearity", {})
     sac = raw_results.get("sac", {})
     bic_nl = raw_results.get("bic_nl", {})
@@ -339,29 +312,33 @@ def build_analysis_metrics(raw_results: Dict[str, Any]) -> AnalysisMetrics:
         )
     )
 
-
 def build_export_filename(name: str, extension: str) -> str:
-    """Create filesystem-safe filename for exported reports."""
-    sanitized = "".join(
-        ch if ch.isalnum() or ch in ("-", "_") else "_"
-        for ch in (name or "").strip().lower()
-    )
+    sanitized = "".join(ch if ch.isalnum() or ch in ("-", "_") else "_" for ch in (name or "").strip().lower())
     sanitized = sanitized or "analysis_report"
     return f"{sanitized}.{extension}"
 
+def _prepare_key(key_str: str) -> bytes:
+    key_bytes = key_str.encode('utf-8')
+    if len(key_bytes) < 16:
+        key_bytes = key_bytes + b'\x00' * (16 - len(key_bytes))
+    elif len(key_bytes) > 16:
+        key_bytes = key_bytes[:16]
+    return key_bytes
 
-# API Endpoints
+
+# ==========================================
+# API ENDPOINTS
+# ==========================================
 
 @app.get("/")
 def root():
-    """API root endpoint"""
     return {
         "message": "Advanced S-Box 44 Analyzer API",
-        "version": "1.0.0",
-            "endpoints": {
+        "version": "2.0.0",
+        "endpoints": {
             "generate": "/generate-sbox",
             "analyze": "/analyze",
-            "compare": "/compare (POST)",
+            "compare": "/compare",
             "encrypt": "/encrypt",
             "decrypt": "/decrypt",
             "matrix-info": "/matrix-info",
@@ -369,48 +346,29 @@ def root():
         }
     }
 
-
 @app.get("/health")
 def health_check():
-    """Health check endpoint"""
     return {"status": "healthy", "service": "S-Box Analyzer API"}
-
 
 @app.post("/generate-sbox", response_model=SBoxResponse)
 def generate_sbox(request: SBoxGenerateRequest = None):
-    """
-    Generate S-box using affine transformation
-    
-    Default: Uses K44 matrix with C_AES constant
-    Custom: Provide custom matrix and constant
-    """
     try:
         start_time = time.time()
-        
         if request is None:
             request = SBoxGenerateRequest()
         
-        # Determine which matrix to use
-        # Priority: custom_matrix > use_k44 flag > default AES
         if request.custom_matrix:
             if len(request.custom_matrix) != 8:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Custom matrix must have exactly 8 rows"
-                )
-            # Check if it matches known matrices
+                raise HTTPException(status_code=400, detail="Custom matrix must have exactly 8 rows")
             matrix = request.custom_matrix
             matrix_name = "Custom Matrix"
-            
-            # Compare with known matrices
             if matrix == K44_MATRIX:
                 matrix_name = "K44 Matrix"
             elif matrix == AES_MATRIX:
                 matrix_name = "AES Matrix"
             else:
-                # Check against other known matrices
                 for key, (name, known_matrix) in AVAILABLE_MATRICES.items():
-                    if list(matrix) == list(known_matrix):  # Convert both to lists for comparison
+                    if list(matrix) == list(known_matrix):
                         matrix_name = name
                         break
         elif request.use_k44:
@@ -422,17 +380,13 @@ def generate_sbox(request: SBoxGenerateRequest = None):
         
         constant = request.constant if request.constant is not None else C_AES
         
-        # Generate S-box
         sbox = generator.generate_sbox(matrix, constant)
         validation_data = validate_sbox(sbox)
         if request.require_valid and not validation_data.get("is_valid"):
-            raise HTTPException(
-                status_code=400,
-                detail="Generated S-box failed balance/bijective criteria"
-            )
-        validation = SBoxValidationModel(**validation_data)
+            raise HTTPException(status_code=400, detail="Generated S-box failed balance/bijective criteria")
         
-        generation_time = (time.time() - start_time) * 1000  # Convert to ms
+        validation = SBoxValidationModel(**validation_data)
+        generation_time = (time.time() - start_time) * 1000
         
         return SBoxResponse(
             sbox=sbox,
@@ -441,88 +395,51 @@ def generate_sbox(request: SBoxGenerateRequest = None):
             generation_time_ms=round(generation_time, 2),
             validation=validation
         )
-    
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @app.post("/analyze", response_model=AnalysisResponse)
 def analyze(request: SBoxAnalyzeRequest):
-    """
-    Analyze S-box cryptographic strength
-    
-    Performs comprehensive tests:
-    - Nonlinearity (NL)
-    - Strict Avalanche Criterion (SAC)
-    - BIC-NL & BIC-SAC
-    - Linear Approximation Probability (LAP)
-    - Differential Approximation Probability (DAP)
-    """
     try:
         validate_sbox_values(request.sbox)
-
         start_time = time.time()
-
-        # Perform analysis
         raw_results = analyze_sbox(request.sbox)
         metrics = build_analysis_metrics(raw_results)
-
         analysis_time = (time.time() - start_time) * 1000
-
         return AnalysisResponse(
             sbox_name=request.name,
             analysis_time_ms=round(analysis_time, 2),
             **metrics.dict()
         )
-
     except HTTPException:
         raise
     except Exception as e:
         import traceback
-        error_detail = f"{str(e)}\n{traceback.format_exc()}"
-        raise HTTPException(status_code=500, detail=error_detail)
-
+        raise HTTPException(status_code=500, detail=f"{str(e)}\n{traceback.format_exc()}")
 
 @app.post("/compare", response_model=ComparisonResponse)
 def compare(request: ComparisonRequest = None):
-    """
-    Compare K44 S-box with standard AES S-box, optionally including custom S-box
-    
-    Generates both S-boxes and performs complete analysis
-    Returns side-by-side comparison of all metrics
-    
-    Args:
-        custom_sbox: Optional custom S-box (256 values) to include in comparison
-    
-    Returns:
-        Comparison of K44, AES, and optionally custom S-boxes
-    """
     try:
         if request is None:
             request = ComparisonRequest()
-        
         start_time = time.time()
-        
-        # Generate both standard S-boxes
         k44_sbox = generator.generate_k44_sbox()
         aes_sbox = generator.generate_aes_sbox()
-        
-        # Validate custom S-box if provided
         custom_sbox = None
         if request.custom_sbox:
             validate_sbox_values(request.custom_sbox)
             custom_sbox = request.custom_sbox
-        
         generation_time = (time.time() - start_time) * 1000
         
-        # Analyze all S-boxes
         analysis_start = time.time()
         k44_analysis = build_analysis_metrics(analyze_sbox(k44_sbox))
         aes_analysis = build_analysis_metrics(analyze_sbox(aes_sbox))
         custom_analysis = build_analysis_metrics(analyze_sbox(custom_sbox)) if custom_sbox else None
+        
         k44_validation = SBoxValidationModel(**validate_sbox(k44_sbox))
         aes_validation = SBoxValidationModel(**validate_sbox(aes_sbox))
         custom_validation = SBoxValidationModel(**validate_sbox(custom_sbox)) if custom_sbox else None
+        
         analysis_time = (time.time() - analysis_start) * 1000
         
         return ComparisonResponse(
@@ -538,30 +455,20 @@ def compare(request: ComparisonRequest = None):
             generation_time_ms=round(generation_time, 2),
             analysis_time_ms=round(analysis_time, 2)
         )
-    
     except HTTPException:
         raise
     except Exception as e:
         import traceback
-        error_detail = f"{str(e)}\n{traceback.format_exc()}"
-        raise HTTPException(status_code=500, detail=error_detail)
-
+        raise HTTPException(status_code=500, detail=f"{str(e)}\n{traceback.format_exc()}")
 
 @app.post("/export-analysis")
 def export_analysis(request: ExportAnalysisRequest):
-    """
-    Export analysis results into machine-readable formats (CSV initially).
-    
-    Future support for PDF reporting is planned per project roadmap.
-    """
     try:
         validate_sbox_values(request.sbox)
-
         start_time = time.time()
         raw_results = analyze_sbox(request.sbox)
         analysis_time = (time.time() - start_time) * 1000
         metrics = build_analysis_metrics(raw_results)
-
         export_format = (request.format or "csv").strip().lower()
 
         if export_format == "csv":
@@ -576,28 +483,15 @@ def export_analysis(request: ExportAnalysisRequest):
                 media_type="text/csv",
                 headers={"Content-Disposition": f'attachment; filename="{filename}"'}
             )
-        if export_format == "pdf":
-            raise HTTPException(
-                status_code=501,
-                detail="PDF export is planned but not yet implemented."
-            )
-
-        raise HTTPException(
-            status_code=400,
-            detail="Unsupported export format. Use 'csv' or 'pdf'."
-        )
-
+        raise HTTPException(status_code=400, detail="Unsupported export format")
     except HTTPException:
         raise
     except Exception as e:
         import traceback
-        error_detail = f"{str(e)}\n{traceback.format_exc()}"
-        raise HTTPException(status_code=500, detail=error_detail)
-
+        raise HTTPException(status_code=500, detail=f"{str(e)}\n{traceback.format_exc()}")
 
 @app.get("/matrix-info")
 def get_matrix_info():
-    """Get information about the K44 and AES matrices"""
     return {
         "k44_matrix": {
             "name": "K44 Affine Matrix",
@@ -619,77 +513,24 @@ def get_matrix_info():
         }
     }
 
-
-def _prepare_key(key_str: str) -> bytes:
-    """
-    Prepare encryption key from string
-    Key will be padded or truncated to exactly 16 bytes
-    """
-    key_bytes = key_str.encode('utf-8')
-    
-    if len(key_bytes) < 16:
-        # Pad with zeros
-        key_bytes = key_bytes + b'\x00' * (16 - len(key_bytes))
-    elif len(key_bytes) > 16:
-        # Truncate to 16 bytes
-        key_bytes = key_bytes[:16]
-    
-    return key_bytes
-
-
 @app.post("/encrypt", response_model=EncryptResponse)
 def encrypt(request: EncryptRequest):
-    """
-    Encrypt plaintext using AES-128 with K44, AES, or custom S-box
-    
-    Args:
-        plaintext: Text to encrypt
-        key: Encryption key (will be padded/truncated to 16 bytes)
-        sbox_type: "k44" for K44 S-box, "aes" for standard AES S-box, "custom" for custom S-box
-        custom_sbox: Custom S-box (256 values) - required if sbox_type is "custom"
-    
-    Returns:
-        Base64 encoded ciphertext (IV + encrypted data)
-    """
     try:
         if request.sbox_type.lower() not in ['k44', 'aes', 'custom']:
-            raise HTTPException(
-                status_code=400,
-                detail="sbox_type must be 'k44', 'aes', or 'custom'"
-            )
-        
+            raise HTTPException(status_code=400, detail="sbox_type must be 'k44', 'aes', or 'custom'")
         if request.sbox_type.lower() == 'custom':
-            if request.custom_sbox is None:
-                raise HTTPException(
-                    status_code=400,
-                    detail="custom_sbox is required when sbox_type is 'custom'"
-                )
-            if len(request.custom_sbox) != 256:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Custom S-box must contain exactly 256 values"
-                )
+            if request.custom_sbox is None or len(request.custom_sbox) != 256:
+                raise HTTPException(status_code=400, detail="Valid custom_sbox required")
         
         start_time = time.time()
-        
-        # Prepare key
         key = _prepare_key(request.key)
-        
-        # Prepare plaintext
         plaintext_bytes = request.plaintext.encode('utf-8')
-        
-        # Create cipher with specified S-box
         cipher = create_cipher(
             request.sbox_type.lower(),
             request.custom_sbox if request.sbox_type.lower() == 'custom' else None
         )
-        
-        # Encrypt
         ciphertext_bytes = cipher.encrypt(plaintext_bytes, key)
-        
-        # Encode to base64 for safe transmission
         ciphertext_b64 = base64.b64encode(ciphertext_bytes).decode('utf-8')
-        
         encryption_time = (time.time() - start_time) * 1000
         
         return EncryptResponse(
@@ -697,74 +538,32 @@ def encrypt(request: EncryptRequest):
             sbox_type=request.sbox_type.lower(),
             encryption_time_ms=round(encryption_time, 2)
         )
-    
-    except HTTPException:
-        raise
     except Exception as e:
         import traceback
-        error_detail = f"{str(e)}\n{traceback.format_exc()}"
-        raise HTTPException(status_code=500, detail=error_detail)
-
+        raise HTTPException(status_code=500, detail=f"{str(e)}\n{traceback.format_exc()}")
 
 @app.post("/decrypt", response_model=DecryptResponse)
 def decrypt(request: DecryptRequest):
-    """
-    Decrypt ciphertext using AES-128 with K44, AES, or custom S-box
-    
-    Args:
-        ciphertext: Base64 encoded ciphertext (IV + encrypted data)
-        key: Decryption key (must match encryption key)
-        sbox_type: "k44" for K44 S-box, "aes" for standard AES S-box, "custom" for custom S-box
-        custom_sbox: Custom S-box (256 values) - required if sbox_type is "custom"
-    
-    Returns:
-        Decrypted plaintext
-    """
     try:
         if request.sbox_type.lower() not in ['k44', 'aes', 'custom']:
-            raise HTTPException(
-                status_code=400,
-                detail="sbox_type must be 'k44', 'aes', or 'custom'"
-            )
-        
+            raise HTTPException(status_code=400, detail="sbox_type must be 'k44', 'aes', or 'custom'")
         if request.sbox_type.lower() == 'custom':
-            if request.custom_sbox is None:
-                raise HTTPException(
-                    status_code=400,
-                    detail="custom_sbox is required when sbox_type is 'custom'"
-                )
-            if len(request.custom_sbox) != 256:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Custom S-box must contain exactly 256 values"
-                )
+            if request.custom_sbox is None or len(request.custom_sbox) != 256:
+                raise HTTPException(status_code=400, detail="Valid custom_sbox required")
         
         start_time = time.time()
-        
-        # Prepare key
         key = _prepare_key(request.key)
-        
-        # Decode base64 ciphertext
         try:
             ciphertext_bytes = base64.b64decode(request.ciphertext)
         except Exception:
-            raise HTTPException(
-                status_code=400,
-                detail="Invalid base64 ciphertext"
-            )
-        
-        # Create cipher with specified S-box
+            raise HTTPException(status_code=400, detail="Invalid base64 ciphertext")
+            
         cipher = create_cipher(
             request.sbox_type.lower(),
             request.custom_sbox if request.sbox_type.lower() == 'custom' else None
         )
-        
-        # Decrypt
         plaintext_bytes = cipher.decrypt(ciphertext_bytes, key)
-        
-        # Decode to string
         plaintext = plaintext_bytes.decode('utf-8')
-        
         decryption_time = (time.time() - start_time) * 1000
         
         return DecryptResponse(
@@ -772,14 +571,11 @@ def decrypt(request: DecryptRequest):
             sbox_type=request.sbox_type.lower(),
             decryption_time_ms=round(decryption_time, 2)
         )
-    
-    except HTTPException:
-        raise
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
+        import traceback
+        raise HTTPException(status_code=500, detail=f"{str(e)}\n{traceback.format_exc()}")
 
 @app.post("/encrypt-image")
 async def encrypt_image(
@@ -788,111 +584,51 @@ async def encrypt_image(
     sbox_type: str = Form("k44"),
     custom_sbox: Optional[str] = Form(None)
 ):
-    """
-    Encrypt image using AES-128 with K44, AES, or custom S-box
-    
-    Args:
-        file: Image file to encrypt
-        key: Encryption key (will be padded/truncated to 16 bytes)
-        sbox_type: "k44" for K44 S-box, "aes" for standard AES S-box, "custom" for custom S-box
-        custom_sbox: JSON string of custom S-box (256 values) - required if sbox_type is "custom"
-    
-    Returns:
-        Encrypted image (PNG format) as binary data
-    """
     try:
-        if sbox_type.lower() not in ['k44', 'aes', 'custom']:
-            raise HTTPException(
-                status_code=400,
-                detail="sbox_type must be 'k44', 'aes', or 'custom'"
-            )
-        
         custom_sbox_list = None
         if sbox_type.lower() == 'custom':
-            if custom_sbox is None:
-                raise HTTPException(
-                    status_code=400,
-                    detail="custom_sbox is required when sbox_type is 'custom'"
-                )
-            try:
+            if custom_sbox:
                 custom_sbox_list = json.loads(custom_sbox)
-                if len(custom_sbox_list) != 256:
-                    raise HTTPException(
-                        status_code=400,
-                        detail="Custom S-box must contain exactly 256 values"
-                    )
-            except json.JSONDecodeError:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Invalid JSON format for custom_sbox"
-                )
         
         start_time = time.time()
-        
-        # Read image file
         image_bytes = await file.read()
         
-        # Open image to get format and metadata
         try:
             img = Image.open(io.BytesIO(image_bytes))
-            original_format = img.format or 'PNG'
-            # Convert to RGB if necessary (to ensure consistent format)
             if img.mode not in ('RGB', 'RGBA'):
                 img = img.convert('RGB')
-            
-            # Calculate histogram for original image
             img_array = np.array(img)
             original_histogram = {
                 'red': np.histogram(img_array[:, :, 0].flatten(), bins=256, range=(0, 256))[0].tolist(),
                 'green': np.histogram(img_array[:, :, 1].flatten(), bins=256, range=(0, 256))[0].tolist(),
                 'blue': np.histogram(img_array[:, :, 2].flatten(), bins=256, range=(0, 256))[0].tolist(),
             }
-            
-            # Save to bytes buffer to get raw image data
             img_buffer = io.BytesIO()
             img.save(img_buffer, format='PNG')
             image_data = img_buffer.getvalue()
         except Exception as e:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Invalid image file: {str(e)}"
-            )
-        
-        # Prepare key
+            raise HTTPException(status_code=400, detail=f"Invalid image: {str(e)}")
+
         key_bytes = _prepare_key(key)
-        
-        # Create cipher with specified S-box
-        cipher = create_cipher(
-            sbox_type.lower(),
-            custom_sbox_list if sbox_type.lower() == 'custom' else None
-        )
-        
-        # Encrypt image data
+        cipher = create_cipher(sbox_type.lower(), custom_sbox_list)
         ciphertext_bytes = cipher.encrypt(image_data, key_bytes)
         
-        # Store original length in first 4 bytes (as 32-bit integer, big-endian)
+        # Header length + data
         data_len = len(ciphertext_bytes)
         length_header = data_len.to_bytes(4, byteorder='big')
-        
-        # Combine length header with ciphertext
         data_with_length = length_header + ciphertext_bytes
         total_data_len = len(data_with_length)
         
-        # Create encrypted image from ciphertext bytes
-        # Calculate dimensions to fit the data
-        # Calculate side length to fit all bytes (3 bytes per pixel for RGB)
+        # Calculate image size
         pixels_needed = math.ceil(total_data_len / 3)
         side = int(math.ceil(math.sqrt(pixels_needed)))
         total_pixels = side * side
         total_bytes_needed = total_pixels * 3
         
-        # Pad data to fit image dimensions
         padded_data = data_with_length + b'\x00' * (total_bytes_needed - total_data_len)
-        
-        # Create image from encrypted bytes (RGB mode)
         encrypted_img = Image.frombytes('RGB', (side, side), padded_data[:total_bytes_needed])
         
-        # Calculate histogram for encrypted image
+        # Encrypted histogram
         encrypted_array = np.array(encrypted_img)
         encrypted_histogram = {
             'red': np.histogram(encrypted_array[:, :, 0].flatten(), bins=256, range=(0, 256))[0].tolist(),
@@ -900,42 +636,27 @@ async def encrypt_image(
             'blue': np.histogram(encrypted_array[:, :, 2].flatten(), bins=256, range=(0, 256))[0].tolist(),
         }
         
-        # Save to buffer as PNG
         output_buffer = io.BytesIO()
         encrypted_img.save(output_buffer, format='PNG')
         encrypted_image_bytes = output_buffer.getvalue()
         
         encryption_time = (time.time() - start_time) * 1000
-        
-        # Ensure minimum precision of 2 decimal places
-        time_str = f"{encryption_time:.2f}"
-        
-        # Encode histograms as JSON for headers (base64 encoded to avoid header size limits)
-        histogram_data = {
-            'original': original_histogram,
-            'encrypted': encrypted_histogram
-        }
-        histogram_json = json.dumps(histogram_data)
-        histogram_b64 = base64.b64encode(histogram_json.encode('utf-8')).decode('utf-8')
+        histogram_data = {'original': original_histogram, 'encrypted': encrypted_histogram}
+        histogram_b64 = base64.b64encode(json.dumps(histogram_data).encode('utf-8')).decode('utf-8')
         
         return Response(
             content=encrypted_image_bytes,
             media_type="image/png",
             headers={
                 "X-Sbox-Type": sbox_type.lower(),
-                "X-Encryption-Time": time_str,
+                "X-Encryption-Time": f"{encryption_time:.2f}",
                 "X-Histogram-Data": histogram_b64,
-                "Content-Disposition": f'attachment; filename="encrypted_image.png"'
+                "Content-Disposition": 'attachment; filename="encrypted_image.png"'
             }
         )
-    
-    except HTTPException:
-        raise
     except Exception as e:
         import traceback
-        error_detail = f"{str(e)}\n{traceback.format_exc()}"
-        raise HTTPException(status_code=500, detail=error_detail)
-
+        raise HTTPException(status_code=500, detail=f"{str(e)}\n{traceback.format_exc()}")
 
 @app.post("/decrypt-image")
 async def decrypt_image(
@@ -944,144 +665,58 @@ async def decrypt_image(
     sbox_type: str = Form("k44"),
     custom_sbox: Optional[str] = Form(None)
 ):
-    """
-    Decrypt image using AES-128 with K44, AES, or custom S-box
-    
-    Args:
-        file: Encrypted image file (cipher image)
-        key: Decryption key (must match encryption key)
-        sbox_type: "k44" for K44 S-box, "aes" for standard AES S-box, "custom" for custom S-box
-        custom_sbox: JSON string of custom S-box (256 values) - required if sbox_type is "custom"
-    
-    Returns:
-        Decrypted image (PNG format) as binary data
-    """
     try:
-        if sbox_type.lower() not in ['k44', 'aes', 'custom']:
-            raise HTTPException(
-                status_code=400,
-                detail="sbox_type must be 'k44', 'aes', or 'custom'"
-            )
-        
         custom_sbox_list = None
-        if sbox_type.lower() == 'custom':
-            if custom_sbox is None:
-                raise HTTPException(
-                    status_code=400,
-                    detail="custom_sbox is required when sbox_type is 'custom'"
-                )
-            try:
-                custom_sbox_list = json.loads(custom_sbox)
-                if len(custom_sbox_list) != 256:
-                    raise HTTPException(
-                        status_code=400,
-                        detail="Custom S-box must contain exactly 256 values"
-                    )
-            except json.JSONDecodeError:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Invalid JSON format for custom_sbox"
-                )
-        
+        if sbox_type.lower() == 'custom' and custom_sbox:
+            custom_sbox_list = json.loads(custom_sbox)
+            
         start_time = time.time()
-        
-        # Read encrypted image file
         encrypted_image_bytes = await file.read()
         
-        # Open encrypted image and extract bytes
         try:
             encrypted_img = Image.open(io.BytesIO(encrypted_image_bytes))
             if encrypted_img.mode != 'RGB':
                 encrypted_img = encrypted_img.convert('RGB')
-            
-            # Extract raw bytes from image
             all_bytes = encrypted_img.tobytes()
             
-            # Extract length header (first 4 bytes)
             if len(all_bytes) < 4:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Invalid encrypted image: data too short"
-                )
-            
+                raise HTTPException(status_code=400, detail="Data too short")
+                
             data_len = int.from_bytes(all_bytes[:4], byteorder='big')
-            
-            # Extract ciphertext (skip 4-byte header)
             if len(all_bytes) < 4 + data_len:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Invalid encrypted image: corrupted data"
-                )
-            
+                raise HTTPException(status_code=400, detail="Corrupted data")
+                
             encrypted_data = all_bytes[4:4+data_len]
-            
         except Exception as e:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Invalid encrypted image file: {str(e)}"
-            )
-        
-        # Prepare key
+            raise HTTPException(status_code=400, detail=f"Invalid image: {str(e)}")
+            
         key_bytes = _prepare_key(key)
+        cipher = create_cipher(sbox_type.lower(), custom_sbox_list)
+        decrypted_bytes = cipher.decrypt(encrypted_data, key_bytes)
         
-        # Create cipher with specified S-box
-        cipher = create_cipher(
-            sbox_type.lower(),
-            custom_sbox_list if sbox_type.lower() == 'custom' else None
-        )
-        
-        # Decrypt image data
-        try:
-            decrypted_bytes = cipher.decrypt(encrypted_data, key_bytes)
-        except ValueError as e:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Decryption failed: {str(e)}. Please check your key and ensure the image was encrypted with the same S-box."
-            )
-        
-        # Try to reconstruct original image
         try:
             decrypted_img = Image.open(io.BytesIO(decrypted_bytes))
-            # Save to buffer as PNG
             output_buffer = io.BytesIO()
             decrypted_img.save(output_buffer, format='PNG')
             decrypted_image_bytes = output_buffer.getvalue()
         except Exception:
-            # If image reconstruction fails, return as-is (might be valid image data)
             decrypted_image_bytes = decrypted_bytes
-        
+            
         decryption_time = (time.time() - start_time) * 1000
-        
-        # Ensure minimum precision of 2 decimal places
-        time_str = f"{decryption_time:.2f}"
         
         return Response(
             content=decrypted_image_bytes,
             media_type="image/png",
             headers={
                 "X-Sbox-Type": sbox_type.lower(),
-                "X-Decryption-Time": time_str,
-                "Content-Disposition": f'attachment; filename="decrypted_image.png"'
+                "X-Decryption-Time": f"{decryption_time:.2f}",
+                "Content-Disposition": 'attachment; filename="decrypted_image.png"'
             }
         )
-    
-    except HTTPException:
-        raise
     except Exception as e:
         import traceback
-        error_detail = f"{str(e)}\n{traceback.format_exc()}"
-        raise HTTPException(status_code=500, detail=error_detail)
-
+        raise HTTPException(status_code=500, detail=f"{str(e)}\n{traceback.format_exc()}")
 
 if __name__ == "__main__":
     import uvicorn
-    
-    print("=" * 60)
-    print("Advanced S-Box 44 Analyzer API")
-    print("=" * 60)
-    print("\nStarting server on http://localhost:8000")
-    print("API Documentation: http://localhost:8000/docs")
-    print("=" * 60)
-    
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
-
+    uvicorn.run("main:app", host="0.0.0.0", port=5000, reload=True)
