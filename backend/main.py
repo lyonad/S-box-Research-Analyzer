@@ -22,6 +22,7 @@ from cryptographic_tests import analyze_sbox
 from aes_cipher import create_cipher
 from report_exporter import generate_analysis_csv
 from sbox_validations import validate_sbox
+import logging
 
 app = FastAPI(
     title="AES S-box Research Analyzer API",
@@ -54,6 +55,8 @@ app.add_middleware(
 
 # Initialize generator
 generator = SBoxGenerator()
+# Max upload size for images (default 8 MiB) to avoid OOM and long processing
+MAX_UPLOAD_SIZE = 8 * 1024 * 1024
 
 
 # ==========================================
@@ -326,6 +329,26 @@ def _prepare_key(key_str: str) -> bytes:
     return key_bytes
 
 
+async def _read_upload_file_limited(upload_file, max_bytes: int = MAX_UPLOAD_SIZE) -> bytes:
+    """
+    Read an UploadFile in chunks and abort if size exceeds `max_bytes`.
+    Raises HTTPException 413 if file is too large.
+    """
+    total = 0
+    chunks = []
+    # read in 1MiB chunks
+    chunk_size = 1024 * 1024
+    while True:
+        chunk = await upload_file.read(chunk_size)
+        if not chunk:
+            break
+        total += len(chunk)
+        if total > max_bytes:
+            raise HTTPException(status_code=413, detail=f"File too large (limit {max_bytes} bytes)")
+        chunks.append(chunk)
+    return b"".join(chunks)
+
+
 # ==========================================
 # API ENDPOINTS
 # ==========================================
@@ -591,7 +614,8 @@ async def encrypt_image(
                 custom_sbox_list = json.loads(custom_sbox)
         
         start_time = time.time()
-        image_bytes = await file.read()
+        # read upload with limit to avoid OOM/timeouts
+        image_bytes = await _read_upload_file_limited(file)
         
         try:
             img = Image.open(io.BytesIO(image_bytes))
@@ -671,7 +695,8 @@ async def decrypt_image(
             custom_sbox_list = json.loads(custom_sbox)
             
         start_time = time.time()
-        encrypted_image_bytes = await file.read()
+        # read upload with limit to avoid OOM/timeouts
+        encrypted_image_bytes = await _read_upload_file_limited(file)
         
         try:
             encrypted_img = Image.open(io.BytesIO(encrypted_image_bytes))
