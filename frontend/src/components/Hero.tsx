@@ -54,7 +54,7 @@ const FeatureBadge: React.FC<{ text: string; delay: number }> = ({ text, delay }
 
 const Hero: React.FC = () => {
   return (
-    <div className="relative overflow-hidden bg-surface-darkest text-white">
+    <div className="relative overflow-hidden bg-surface-darkest text-white min-h-screen -mt-16 flex items-center">
       <div
         className="absolute inset-0 opacity-20"
         style={{
@@ -66,11 +66,21 @@ const Hero: React.FC = () => {
       />
       <div className="absolute inset-0 bg-gradient-to-br from-surface-darkest/95 via-surface-dark/90 to-surface-darkest/95" />
 
-      <div className="relative container mx-auto px-4 py-16 md:py-24 pb-20 md:pb-28">
-        <div className="flex flex-col md:flex-row items-center gap-8 md:pl-6 lg:pl-10">
+      <div className="relative container mx-auto px-4 sm:px-6 py-16 sm:py-20 md:py-28 lg:py-32">
+        <div className="flex flex-col md:flex-row items-center gap-8 sm:gap-10 md:gap-16 md:pl-4 lg:pl-10">
           <div className="flex-shrink-0 relative">
             {/* Logo Container with Orbiting Particles */}
-            <div className="relative w-40 h-40 md:w-48 md:h-48 flex items-center justify-center">
+            <div
+              className="relative flex items-center justify-center"
+              style={{
+                width: '30vw',
+                height: '30vw',
+                maxWidth: '520px',
+                maxHeight: '520px',
+                minWidth: '140px',
+                minHeight: '140px',
+              }}
+            >
               
               {/* Orbit Ring 1 - Outer */}
               <div className="absolute inset-[-30px] md:inset-[-40px]">
@@ -111,11 +121,12 @@ const Hero: React.FC = () => {
               </div>
 
               {/* Logo */}
-              <div className="relative z-10">
+              <div className="relative z-10 w-full h-full flex items-center justify-center">
                 <img
                   src="/images/LOGO.png"
                   alt="Logo"
-                  className="w-28 h-28 md:w-36 md:h-36 object-contain"
+                  className="w-full h-full object-contain drop-shadow-[0_8px_30px_rgba(0,0,0,0.6)]"
+                  style={{ maxWidth: '100%', maxHeight: '100%' }}
                 />
               </div>
 
@@ -152,23 +163,23 @@ const Hero: React.FC = () => {
             </div>
 
             <VariableFontCursor 
-              label="AES S-box Research Analyzer" 
-              className="text-4xl md:text-5xl lg:text-6xl mb-6 leading-tight text-white"
+              label="AES S-Box Research Analyzer" 
+              className="text-4xl md:text-6xl lg:text-8xl mb-6 leading-tight text-white"
               weightRange={[400, 800]}
               widthRange={[100, 130]}
               distRange={[0, 150]}
               spreadRange={[0, 5]}
             />
 
-            <p className="font-body text-lg md:text-xl text-text-primary mb-8 max-w-3xl">
-              Comprehensive Research Platform for AES S-box Modification through Affine Matrices Exploration and Parameter Optimization
+            <p className="font-body text-base md:text-lg lg:text-xl text-text-primary mb-8 max-w-4xl">
+              Explore AES S-box variants, evaluate their cryptographic strength, and visualize results with intuitive tools.
             </p>
 
             <div className="flex flex-wrap gap-4 justify-center md:justify-start">
               <FeatureBadge text="GF(2⁸) Arithmetic" delay={0.1} />
-              <FeatureBadge text="Matrix Exploration" delay={0.2} />
-              <FeatureBadge text="Parameter Tweaking" delay={0.3} />
-              <FeatureBadge text="Cryptanalysis Testing" delay={0.4} />
+              <FeatureBadge text="Matrix Explorer" delay={0.2} />
+              <FeatureBadge text="Parameter Tuning" delay={0.3} />
+              <FeatureBadge text="Security Testing" delay={0.4} />
             </div>
           </div>
         </div>
