@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import HistogramChart from './HistogramChart';
+import { getApiBaseUrl } from '../api';
 
 interface ImageEncryptionPanelProps {
   className?: string;
@@ -83,7 +84,8 @@ const ImageEncryptionPanel: React.FC<ImageEncryptionPanelProps> = ({
         formData.append('custom_sbox', JSON.stringify(customSBox));
       }
 
-      const response = await fetch('https://aml-s9xx-box.tail31204e.ts.net/encrypt-image', {
+      const apiUrl = `${getApiBaseUrl()}/encrypt-image`;
+      const response = await fetch(apiUrl, {
         method: 'POST',
         body: formData,
       });
@@ -160,7 +162,8 @@ const ImageEncryptionPanel: React.FC<ImageEncryptionPanelProps> = ({
         formData.append('custom_sbox', JSON.stringify(customSBox));
       }
 
-      const response = await fetch('https://aml-s9xx-box.tail31204e.ts.net/decrypt-image', {
+      const apiUrl = `${getApiBaseUrl()}/decrypt-image`;
+      const response = await fetch(apiUrl, {
         method: 'POST',
         body: formData,
       });

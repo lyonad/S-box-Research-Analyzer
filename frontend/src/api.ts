@@ -5,14 +5,68 @@
 import axios from 'axios';
 import { SBox, AnalysisResults, ComparisonData, EncryptRequest, EncryptResponse, DecryptRequest, DecryptResponse } from './types';
 
-const API_BASE_URL = 'https://aml-s9xx-box.tail31204e.ts.net';
+// Get API base URL from environment variables with fallback
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
+// Validate API URL
+if (!API_BASE_URL) {
+  console.error('VITE_API_BASE_URL is not configured in environment variables');
+}
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 30000, // 30 second timeout
+  withCredentials: false,
 });
+
+// Add request interceptor for logging and error handling
+api.interceptors.request.use(
+  (config) => {
+    // Log requests in development mode
+    if (import.meta.env.DEV) {
+      console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    }
+    return config;
+  },
+  (error) => {
+    console.error('Request error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for centralized error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response) {
+      // Server responded with error status
+      const status = error.response.status;
+      const message = error.response.data?.detail || error.message;
+      
+      console.error(`API Error ${status}:`, message);
+      
+      if (status === 429) {
+        throw new Error('Too many requests. Please wait a moment and try again.');
+      } else if (status === 413) {
+        throw new Error('File too large. Maximum size is 8MB.');
+      } else if (status >= 500) {
+        throw new Error('Server error. Please try again later.');
+      }
+    } else if (error.request) {
+      // Request made but no response received
+      console.error('Network error:', error.message);
+      throw new Error('Unable to connect to server. Please check your connection.');
+    }
+    
+    return Promise.reject(error);
+  }
+);
+
+// Export API base URL for use in other modules
+export const getApiBaseUrl = () => API_BASE_URL;
 
 export const apiService = {
   /**

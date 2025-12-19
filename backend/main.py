@@ -3,8 +3,9 @@ FastAPI Backend for AES S-box Research Tool
 Advanced S-Box 44 Analyzer
 """
 
-from fastapi import FastAPI, HTTPException, File, UploadFile, Form
+from fastapi import FastAPI, HTTPException, File, UploadFile, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import PlainTextResponse, Response
 from pydantic import BaseModel
 from typing import List, Dict, Optional, Any
@@ -15,6 +16,11 @@ import math
 import json
 import numpy as np
 from PIL import Image
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Import internal modules
 from sbox_generator import SBoxGenerator, K44_MATRIX, AES_MATRIX, C_AES, AVAILABLE_MATRICES
@@ -22,41 +28,126 @@ from cryptographic_tests import analyze_sbox
 from aes_cipher import create_cipher
 from report_exporter import generate_analysis_csv
 from sbox_validations import validate_sbox
+from rate_limiter import RateLimiter
 import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="AES S-box Research Analyzer API",
     description="Comprehensive research platform for AES S-box analysis",
-    version="2.0.0"
+    version="2.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
 )
 
 # ==========================================
-# CONFIGURATION: CORS (Agar FE bisa connect)
+# SECURITY CONFIGURATION
 # ==========================================
+
+# Get allowed origins from environment variable
+ALLOWED_ORIGINS_ENV = os.getenv('ALLOWED_ORIGINS', '')
 origins = [
     "http://localhost",
+    "http://localhost:3000",
     "http://localhost:5173",  # Vite Local Dev
     "http://localhost:80",    # Production Local
     "http://127.0.0.1",
-    "https://try-sboxanalyzer.greepzid.com", # Domain Frontend Kamu
-    "https://analyzer.greepzid.com",         # Alternatif Domain
-    "https://api-kripto.greepzid.com",
-    "https://aml-s9xx-box.tail31204e.ts.net" # Domain Backend (Self)
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173",
 ]
+
+# Add custom origins from environment variable
+if ALLOWED_ORIGINS_ENV:
+    custom_origins = [origin.strip() for origin in ALLOWED_ORIGINS_ENV.split(',') if origin.strip()]
+    origins.extend(custom_origins)
+    logger.info(f"Added custom origins: {custom_origins}")
+
+# Default production domains (keep for backward compatibility)
+default_prod_origins = [
+    "https://try-sboxanalyzer.greepzid.com",
+    "https://analyzer.greepzid.com",
+    "https://api-kripto.greepzid.com",
+    "https://aml-s9xx-box.tail31204e.ts.net"
+]
+origins.extend(default_prod_origins)
+
+logger.info(f"CORS enabled for origins: {origins}")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # Mengizinkan domain-domain di atas
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],    # Mengizinkan semua method (GET, POST, dll)
-    allow_headers=["*"],    # Mengizinkan semua header
+    allow_methods=["GET", "POST", "OPTIONS"],  # Be specific about allowed methods
+    allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
     expose_headers=["X-Sbox-Type", "X-Encryption-Time", "X-Decryption-Time", "X-Histogram-Data", "Content-Disposition"],
+    max_age=3600,  # Cache preflight requests for 1 hour
 )
+
+# Add security headers middleware
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    
+    # Security headers
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+    
+    return response
 
 # Initialize generator
 generator = SBoxGenerator()
-# Max upload size for images (default 8 MiB) to avoid OOM and long processing
-MAX_UPLOAD_SIZE = 8 * 1024 * 1024
+
+# Configuration from environment or defaults
+MAX_UPLOAD_SIZE = int(os.getenv('MAX_UPLOAD_SIZE', 8 * 1024 * 1024))  # 8 MB default
+RATE_LIMIT_PER_MINUTE = int(os.getenv('RATE_LIMIT_PER_MINUTE', 60))
+
+logger.info(f"Max upload size: {MAX_UPLOAD_SIZE} bytes")
+logger.info(f"Rate limit: {RATE_LIMIT_PER_MINUTE} requests per minute")
+
+# Initialize rate limiter
+rate_limiter = RateLimiter(requests_per_minute=RATE_LIMIT_PER_MINUTE)
+
+# Rate limiting middleware
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    """Apply rate limiting to all requests"""
+    
+    # Skip rate limiting for docs and static files
+    if request.url.path in ["/docs", "/redoc", "/openapi.json"]:
+        return await call_next(request)
+    
+    # Get client identifier (IP address)
+    client_ip = request.client.host if request.client else "unknown"
+    
+    # Check rate limit
+    is_allowed, remaining = rate_limiter.is_allowed(client_ip)
+    
+    if not is_allowed:
+        logger.warning(f"Rate limit exceeded for client: {client_ip}")
+        raise HTTPException(
+            status_code=429,
+            detail="Too many requests. Please wait a moment before trying again.",
+            headers={"Retry-After": "60"}
+        )
+    
+    # Process request
+    response = await call_next(request)
+    
+    # Add rate limit headers
+    response.headers["X-RateLimit-Limit"] = str(RATE_LIMIT_PER_MINUTE)
+    response.headers["X-RateLimit-Remaining"] = str(remaining)
+    
+    return response
 
 
 # ==========================================
@@ -375,16 +466,44 @@ def health_check():
 
 @app.post("/generate-sbox", response_model=SBoxResponse)
 def generate_sbox(request: SBoxGenerateRequest = None):
+    """
+    Generate S-box with specified parameters
+    
+    Args:
+        request: Generation parameters (matrix, constant, validation)
+        
+    Returns:
+        Generated S-box with validation results
+        
+    Raises:
+        HTTPException 400: Invalid parameters
+        HTTPException 500: Generation error
+    """
     try:
         start_time = time.time()
         if request is None:
             request = SBoxGenerateRequest()
         
+        # Validate custom matrix
         if request.custom_matrix:
             if len(request.custom_matrix) != 8:
-                raise HTTPException(status_code=400, detail="Custom matrix must have exactly 8 rows")
+                raise HTTPException(
+                    status_code=400, 
+                    detail="Custom matrix must have exactly 8 rows"
+                )
+            
+            # Validate matrix values
+            for i, row in enumerate(request.custom_matrix):
+                if not isinstance(row, int) or not (0 <= row <= 255):
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Matrix row {i} must be an integer between 0 and 255"
+                    )
+            
             matrix = request.custom_matrix
             matrix_name = "Custom Matrix"
+            
+            # Check if it matches known matrices
             if matrix == K44_MATRIX:
                 matrix_name = "K44 Matrix"
             elif matrix == AES_MATRIX:
@@ -401,15 +520,29 @@ def generate_sbox(request: SBoxGenerateRequest = None):
             matrix = AES_MATRIX
             matrix_name = "AES Matrix"
         
+        # Validate constant
         constant = request.constant if request.constant is not None else C_AES
+        if not isinstance(constant, int) or not (0 <= constant <= 255):
+            raise HTTPException(
+                status_code=400,
+                detail="Constant must be an integer between 0 and 255"
+            )
         
+        # Generate S-box
         sbox = generator.generate_sbox(matrix, constant)
         validation_data = validate_sbox(sbox)
+        
+        # Check if validation required
         if request.require_valid and not validation_data.get("is_valid"):
-            raise HTTPException(status_code=400, detail="Generated S-box failed balance/bijective criteria")
+            raise HTTPException(
+                status_code=400, 
+                detail="Generated S-box failed balance/bijective criteria"
+            )
         
         validation = SBoxValidationModel(**validation_data)
         generation_time = (time.time() - start_time) * 1000
+        
+        logger.info(f"Generated S-box with {matrix_name}, constant={constant}, time={generation_time:.2f}ms")
         
         return SBoxResponse(
             sbox=sbox,
@@ -418,17 +551,42 @@ def generate_sbox(request: SBoxGenerateRequest = None):
             generation_time_ms=round(generation_time, 2),
             validation=validation
         )
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error generating S-box: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Failed to generate S-box: {str(e)}"
+        )
 
 @app.post("/analyze", response_model=AnalysisResponse)
 def analyze(request: SBoxAnalyzeRequest):
+    """
+    Analyze cryptographic properties of S-box
+    
+    Args:
+        request: S-box data and name
+        
+    Returns:
+        Comprehensive analysis results
+        
+    Raises:
+        HTTPException 400: Invalid S-box format
+        HTTPException 500: Analysis error
+    """
     try:
         validate_sbox_values(request.sbox)
         start_time = time.time()
+        
+        logger.info(f"Analyzing S-box: {request.name}")
+        
         raw_results = analyze_sbox(request.sbox)
         metrics = build_analysis_metrics(raw_results)
         analysis_time = (time.time() - start_time) * 1000
+        
+        logger.info(f"Analysis completed for {request.name} in {analysis_time:.2f}ms")
+        
         return AnalysisResponse(
             sbox_name=request.name,
             analysis_time_ms=round(analysis_time, 2),
@@ -437,8 +595,11 @@ def analyze(request: SBoxAnalyzeRequest):
     except HTTPException:
         raise
     except Exception as e:
-        import traceback
-        raise HTTPException(status_code=500, detail=f"{str(e)}\n{traceback.format_exc()}")
+        logger.error(f"Error analyzing S-box: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Failed to analyze S-box: {str(e)}"
+        )
 
 @app.post("/compare", response_model=ComparisonResponse)
 def compare(request: ComparisonRequest = None):
