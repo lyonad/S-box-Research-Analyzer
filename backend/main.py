@@ -68,19 +68,15 @@ logger.info(f"Thread pool initialized with {thread_pool._max_workers} workers")
 logger.info(f"Max concurrent image operations: {MAX_CONCURRENT_IMAGE_OPS}")
 
 # ==========================================
-# REQUEST CACHING & DEDUPLICATION
+# REQUEST CACHING (NO DEDUPLICATION)
 # ==========================================
 
 # In-memory cache for S-box analysis results
 # Key: hash of (matrix, constant, sbox_type)
 # Value: (result, timestamp)
+# NOTE: Cache untuk hasil yang SUDAH pernah di-compute, bukan untuk sharing concurrent requests
 analysis_cache: Dict[str, tuple[Dict[str, Any], datetime]] = {}
 CACHE_TTL_MINUTES = int(os.getenv('CACHE_TTL_MINUTES', 30))  # Cache expires after 30 minutes
-
-# Pending requests tracker (for deduplication)
-# When multiple concurrent requests have same parameters, they share the same result
-pending_requests: Dict[str, asyncio.Event] = {}
-pending_results: Dict[str, Dict[str, Any]] = {}
 
 def generate_cache_key(data: Dict[str, Any]) -> str:
     """Generate a unique cache key from request parameters"""
@@ -113,7 +109,7 @@ def save_to_cache(cache_key: str, result: Dict[str, Any]):
         logger.info(f"🧹 Cache cleanup: removed oldest entry")
 
 logger.info(f"Request caching enabled (TTL: {CACHE_TTL_MINUTES} minutes)")
-logger.info(f"Request deduplication enabled")
+logger.info(f"⚡ Parallel processing enabled - each request processed independently")
 
 # ==========================================
 # SECURITY CONFIGURATION
@@ -612,7 +608,11 @@ async def _read_upload_file_limited(upload_file, max_bytes: int = MAX_UPLOAD_SIZ
             break
         total += len(chunk)
         if total > max_bytes:
-            raise HTTPException(status_code=413, detail=f"File too large (limit {max_bytes} bytes)")
+            max_kb = max_bytes / 1024
+            raise HTTPException(
+                status_code=413, 
+                detail=f"File too large! Maximum allowed: {max_kb:.0f}KB ({max_bytes / (1024*1024):.1f}MB). Please compress your image."
+            )
         chunks.append(chunk)
     return b"".join(chunks)
 
@@ -642,7 +642,6 @@ def health_check():
     """Health check endpoint with cache statistics"""
     cache_stats = {
         "cached_analyses": len(analysis_cache),
-        "pending_requests": len(pending_requests),
         "cache_ttl_minutes": CACHE_TTL_MINUTES
     }
     return {
@@ -654,10 +653,9 @@ def health_check():
 @app.get("/cache/clear")
 def clear_cache():
     """Clear all cached analysis results"""
-    global analysis_cache, pending_results
+    global analysis_cache
     count = len(analysis_cache)
     analysis_cache.clear()
-    pending_results.clear()
     logger.info(f"🧹 Cache cleared: removed {count} entries")
     return {"message": f"Cache cleared ({count} entries removed)", "cache_size": 0}
 
@@ -760,7 +758,8 @@ def generate_sbox(request: SBoxGenerateRequest = None):
 @app.post("/analyze", response_model=AnalysisResponse)
 async def analyze(request: SBoxAnalyzeRequest):
     """
-    Analyze cryptographic properties of S-box with caching & deduplication
+    Analyze cryptographic properties of S-box with caching
+    Each request is processed independently in parallel
     
     Args:
         request: S-box data and name
@@ -778,62 +777,34 @@ async def analyze(request: SBoxAnalyzeRequest):
         # Generate cache key from S-box values
         cache_key = generate_cache_key({"sbox": request.sbox, "name": request.name})
         
-        # Check cache first
+        # Check cache first (untuk hasil yang SUDAH pernah di-compute)
         cached_result = get_from_cache(cache_key)
         if cached_result:
             logger.info(f"✅ Returning cached result for {request.name}")
             return AnalysisResponse(**cached_result)
         
-        # Check if another request is already processing the same S-box
-        if cache_key in pending_requests:
-            logger.info(f"⏳ Request DEDUPLICATED for {request.name} - waiting for in-progress analysis...")
-            # Wait for the other request to finish
-            event = pending_requests[cache_key]
-            await event.wait()
-            # Return the shared result
-            result = pending_results.get(cache_key)
-            if result:
-                logger.info(f"✅ Returning deduplicated result for {request.name}")
-                return AnalysisResponse(**result)
+        # Process independently (tidak wait request lain)
+        start_time = time.time()
+        logger.info(f"🔬 Analyzing S-box: {request.name} (parallel processing)")
         
-        # Create event for request deduplication
-        event = asyncio.Event()
-        pending_requests[cache_key] = event
+        # Run analysis in thread pool to avoid blocking
+        loop = asyncio.get_event_loop()
+        raw_results = await loop.run_in_executor(thread_pool, analyze_sbox, request.sbox)
+        metrics = build_analysis_metrics(raw_results)
+        analysis_time = (time.time() - start_time) * 1000
         
-        try:
-            start_time = time.time()
-            logger.info(f"🔬 Analyzing S-box: {request.name}")
-            
-            # Run analysis in thread pool to avoid blocking
-            loop = asyncio.get_event_loop()
-            raw_results = await loop.run_in_executor(thread_pool, analyze_sbox, request.sbox)
-            metrics = build_analysis_metrics(raw_results)
-            analysis_time = (time.time() - start_time) * 1000
-            
-            logger.info(f"✅ Analysis completed for {request.name} in {analysis_time:.2f}ms")
-            
-            result_dict = {
-                "sbox_name": request.name,
-                "analysis_time_ms": round(analysis_time, 2),
-                **metrics.dict()
-            }
-            
-            # Save to cache
-            save_to_cache(cache_key, result_dict)
-            
-            # Save for deduplication
-            pending_results[cache_key] = result_dict
-            
-            # Notify waiting requests
-            event.set()
-            
-            return AnalysisResponse(**result_dict)
-        finally:
-            # Cleanup
-            if cache_key in pending_requests:
-                del pending_requests[cache_key]
-            # Keep result for a short time for deduplication
-            asyncio.create_task(cleanup_pending_result(cache_key))
+        logger.info(f"✅ Analysis completed for {request.name} in {analysis_time:.2f}ms")
+        
+        result_dict = {
+            "sbox_name": request.name,
+            "analysis_time_ms": round(analysis_time, 2),
+            **metrics.dict()
+        }
+        
+        # Save to cache untuk request berikutnya
+        save_to_cache(cache_key, result_dict)
+        
+        return AnalysisResponse(**result_dict)
             
     except HTTPException:
         raise
@@ -844,16 +815,10 @@ async def analyze(request: SBoxAnalyzeRequest):
             detail=f"Failed to analyze S-box: {str(e)}"
         )
 
-async def cleanup_pending_result(cache_key: str):
-    """Remove pending result after 5 seconds"""
-    await asyncio.sleep(5)
-    if cache_key in pending_results:
-        del pending_results[cache_key]
-
 @app.post("/compare", response_model=ComparisonResponse)
 async def compare(request: ComparisonRequest = None):
     """
-    Compare K44, AES, and optionally custom S-box with caching & deduplication
+    Compare K44, AES, and optionally custom S-box with parallel processing
     """
     try:
         if request is None:
@@ -871,80 +836,62 @@ async def compare(request: ComparisonRequest = None):
             logger.info(f"✅ Returning cached comparison result")
             return ComparisonResponse(**cached_result)
         
-        # Check if another request is already processing
-        if cache_key in pending_requests:
-            logger.info(f"⏳ Comparison DEDUPLICATED - waiting for in-progress analysis...")
-            event = pending_requests[cache_key]
-            await event.wait()
-            result = pending_results.get(cache_key)
-            if result:
-                logger.info(f"✅ Returning deduplicated comparison result")
-                return ComparisonResponse(**result)
+        # ⚡ Parallel processing - each request processed independently
+        logger.info(f"⚡ Processing comparison request independently (no deduplication)")
         
-        # Create event for deduplication
-        event = asyncio.Event()
-        pending_requests[cache_key] = event
+        start_time = time.time()
+        k44_sbox = generator.generate_k44_sbox()
+        aes_sbox = generator.generate_aes_sbox()
+        custom_sbox = None
+        if request.custom_sbox:
+            validate_sbox_values(request.custom_sbox)
+            custom_sbox = request.custom_sbox
+        generation_time = (time.time() - start_time) * 1000
         
-        try:
-            start_time = time.time()
-            k44_sbox = generator.generate_k44_sbox()
-            aes_sbox = generator.generate_aes_sbox()
-            custom_sbox = None
-            if request.custom_sbox:
-                validate_sbox_values(request.custom_sbox)
-                custom_sbox = request.custom_sbox
-            generation_time = (time.time() - start_time) * 1000
-            
-            analysis_start = time.time()
-            
-            # Run analyses in thread pool
-            loop = asyncio.get_event_loop()
-            k44_raw, aes_raw = await asyncio.gather(
-                loop.run_in_executor(thread_pool, analyze_sbox, k44_sbox),
-                loop.run_in_executor(thread_pool, analyze_sbox, aes_sbox)
-            )
-            
-            k44_analysis = build_analysis_metrics(k44_raw)
-            aes_analysis = build_analysis_metrics(aes_raw)
-            
-            # Custom S-box analysis if provided
-            custom_analysis = None
-            custom_validation = None
-            if custom_sbox:
-                custom_raw = await loop.run_in_executor(thread_pool, analyze_sbox, custom_sbox)
-                custom_analysis = build_analysis_metrics(custom_raw)
-                custom_validation = SBoxValidationModel(**validate_sbox(custom_sbox))
-            
-            k44_validation = SBoxValidationModel(**validate_sbox(k44_sbox))
-            aes_validation = SBoxValidationModel(**validate_sbox(aes_sbox))
-            
-            analysis_time = (time.time() - analysis_start) * 1000
-            
-            result_dict = {
-                "k44_sbox": k44_sbox,
-                "aes_sbox": aes_sbox,
-                "custom_sbox": custom_sbox,
-                "k44_analysis": k44_analysis.dict(),
-                "aes_analysis": aes_analysis.dict(),
-                "custom_analysis": custom_analysis.dict() if custom_analysis else None,
-                "k44_validation": k44_validation.dict(),
-                "aes_validation": aes_validation.dict(),
-                "custom_validation": custom_validation.dict() if custom_validation else None,
-                "generation_time_ms": round(generation_time, 2),
-                "analysis_time_ms": round(analysis_time, 2)
-            }
-            
-            # Save to cache
-            save_to_cache(cache_key, result_dict)
-            pending_results[cache_key] = result_dict
-            event.set()
-            
-            logger.info(f"✅ Comparison completed in {analysis_time:.2f}ms")
-            return ComparisonResponse(**result_dict)
-        finally:
-            if cache_key in pending_requests:
-                del pending_requests[cache_key]
-            asyncio.create_task(cleanup_pending_result(cache_key))
+        analysis_start = time.time()
+        
+        # Run analyses in thread pool
+        loop = asyncio.get_event_loop()
+        k44_raw, aes_raw = await asyncio.gather(
+            loop.run_in_executor(thread_pool, analyze_sbox, k44_sbox),
+            loop.run_in_executor(thread_pool, analyze_sbox, aes_sbox)
+        )
+        
+        k44_analysis = build_analysis_metrics(k44_raw)
+        aes_analysis = build_analysis_metrics(aes_raw)
+        
+        # Custom S-box analysis if provided
+        custom_analysis = None
+        custom_validation = None
+        if custom_sbox:
+            custom_raw = await loop.run_in_executor(thread_pool, analyze_sbox, custom_sbox)
+            custom_analysis = build_analysis_metrics(custom_raw)
+            custom_validation = SBoxValidationModel(**validate_sbox(custom_sbox))
+        
+        k44_validation = SBoxValidationModel(**validate_sbox(k44_sbox))
+        aes_validation = SBoxValidationModel(**validate_sbox(aes_sbox))
+        
+        analysis_time = (time.time() - analysis_start) * 1000
+        
+        result_dict = {
+            "k44_sbox": k44_sbox,
+            "aes_sbox": aes_sbox,
+            "custom_sbox": custom_sbox,
+            "k44_analysis": k44_analysis.dict(),
+            "aes_analysis": aes_analysis.dict(),
+            "custom_analysis": custom_analysis.dict() if custom_analysis else None,
+            "k44_validation": k44_validation.dict(),
+            "aes_validation": aes_validation.dict(),
+            "custom_validation": custom_validation.dict() if custom_validation else None,
+            "generation_time_ms": round(generation_time, 2),
+            "analysis_time_ms": round(analysis_time, 2)
+        }
+        
+        # Save to cache
+        save_to_cache(cache_key, result_dict)
+        
+        logger.info(f"✅ Comparison completed in {analysis_time:.2f}ms")
+        return ComparisonResponse(**result_dict)
             
     except HTTPException:
         raise
