@@ -12,7 +12,7 @@ interface SBoxGridProps {
   highlightColor?: string;
 }
 
-const SBoxGrid: React.FC<SBoxGridProps> = memo({ 
+const SBoxGrid: React.FC<SBoxGridProps> = memo(({  
   sbox, 
   title,
   highlightColor = 'bg-white'
