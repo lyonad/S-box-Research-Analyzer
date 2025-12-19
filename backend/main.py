@@ -17,6 +17,7 @@ import json
 import numpy as np
 from PIL import Image
 import os
+import ipaddress
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -73,11 +74,33 @@ default_prod_origins = [
     "https://try-sboxanalyzer.greepzid.com",
     "https://analyzer.greepzid.com",
     "https://api-kripto.greepzid.com",
-    "https://aml-s9xx-box.tail31204e.ts.net"
+    "https://aml-s9xx-box.tail31204e.ts.net",
+    "https://greepzid.tail31204e.ts.net"
 ]
 origins.extend(default_prod_origins)
 
 logger.info(f"CORS enabled for origins: {origins}")
+
+# Request logging middleware (FIRST - logs all incoming requests)
+# Set REQUEST_LOGGING=false in .env to disable (for production performance)
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """Log every incoming request for debugging connectivity issues"""
+    request_logging = os.getenv('REQUEST_LOGGING', 'true').lower() in ('1', 'true', 'yes')
+    
+    if request_logging:
+        client_host = request.client.host if request.client else "unknown"
+        logger.info(f"🔵 INCOMING REQUEST: {request.method} {request.url.path} from {client_host}")
+        logger.info(f"   Headers: {dict(request.headers)}")
+    
+    try:
+        response = await call_next(request)
+        if request_logging:
+            logger.info(f"✅ RESPONSE: {response.status_code} for {request.method} {request.url.path}")
+        return response
+    except Exception as e:
+        logger.error(f"❌ ERROR processing {request.method} {request.url.path}: {e}")
+        raise
 
 app.add_middleware(
     CORSMiddleware,
@@ -120,33 +143,112 @@ rate_limiter = RateLimiter(requests_per_minute=RATE_LIMIT_PER_MINUTE)
 # Rate limiting middleware
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
-    """Apply rate limiting to all requests"""
-    
-    # Skip rate limiting for docs and static files
-    if request.url.path in ["/docs", "/redoc", "/openapi.json"]:
+    """Apply rate limiting to all requests.
+
+    This middleware supports proxied/tunneled requests (Cloudflare, Tailscale Funnel)
+    by extracting the real client IP from headers such as `CF-Connecting-IP` or
+    `X-Forwarded-For` when the immediate peer is a trusted proxy.
+    """
+
+    # Skip rate limiting for OPTIONS (CORS preflight), docs and static files
+    if request.method == "OPTIONS" or request.url.path in ["/docs", "/redoc", "/openapi.json"]:
         return await call_next(request)
-    
-    # Get client identifier (IP address)
-    client_ip = request.client.host if request.client else "unknown"
-    
+
+    # Helper: parse first IP from X-Forwarded-For
+    def parse_x_forwarded_for(value: str) -> Optional[str]:
+        if not value:
+            return None
+        parts = [p.strip() for p in value.split(',') if p.strip()]
+        return parts[0] if parts else None
+
+    # Load trusted proxy CIDRs from env (comma separated)
+    trusted_cidrs = os.getenv('RATE_LIMIT_TRUSTED_PROXIES', '100.64.0.0/10,127.0.0.1/8,::1/128')
+    trusted_networks = []
+    for cidr in [c.strip() for c in trusted_cidrs.split(',') if c.strip()]:
+        try:
+            trusted_networks.append(ipaddress.ip_network(cidr))
+        except Exception:
+            logger.warning(f"Invalid trusted proxy CIDR in RATE_LIMIT_TRUSTED_PROXIES: {cidr}")
+
+    # Determine immediate peer IP seen by server
+    peer_ip = None
+    try:
+        peer_ip = request.client.host if request.client else None
+    except Exception:
+        peer_ip = None
+
+    real_ip = None
+
+    # Priority: Cloudflare header, X-Real-IP, then X-Forwarded-For (first entry)
+    cf_ip = request.headers.get('cf-connecting-ip') or request.headers.get('CF-Connecting-IP')
+    x_real = request.headers.get('x-real-ip')
+    xff = request.headers.get('x-forwarded-for') or request.headers.get('X-Forwarded-For')
+
+    if cf_ip:
+        real_ip = cf_ip.strip()
+    elif x_real:
+        real_ip = x_real.strip()
+    elif xff:
+        parsed = parse_x_forwarded_for(xff)
+        if parsed:
+            real_ip = parsed
+
+    # If the immediate peer is a trusted proxy, prefer the real_ip extracted from headers
+    def is_trusted(peer: Optional[str]) -> bool:
+        if not peer:
+            return False
+        try:
+            addr = ipaddress.ip_address(peer)
+            for net in trusted_networks:
+                if addr in net:
+                    return True
+        except Exception:
+            return False
+        return False
+
+    if is_trusted(peer_ip) and real_ip:
+        client_identifier = real_ip
+    else:
+        # Fall back to peer IP or unknown
+        client_identifier = real_ip or peer_ip or 'unknown'
+
+    # Optional debug logging for tunneling issues (enable via RATE_LIMIT_DEBUG=true)
+    try:
+        if os.getenv('RATE_LIMIT_DEBUG', 'false').lower() in ('1', 'true', 'yes'):
+            debug_fields = {
+                'peer_ip': peer_ip,
+                'client_identifier': client_identifier,
+                'cf_connecting_ip': cf_ip,
+                'x_real_ip': x_real,
+                'x_forwarded_for': xff,
+                'host': request.headers.get('host'),
+                'forwarded': request.headers.get('forwarded')
+            }
+            # Only log for health endpoint to reduce noise
+            if request.url.path in ['/health', '/']:
+                logger.info(f"RATE_LIMIT_DEBUG: {json.dumps(debug_fields)}")
+    except Exception:
+        logger.exception("Failed to log RATE_LIMIT_DEBUG info")
     # Check rate limit
-    is_allowed, remaining = rate_limiter.is_allowed(client_ip)
-    
+    is_allowed, remaining = rate_limiter.is_allowed(client_identifier)
+
     if not is_allowed:
-        logger.warning(f"Rate limit exceeded for client: {client_ip}")
+        logger.warning(f"Rate limit exceeded for client: {client_identifier} (peer={peer_ip})")
         raise HTTPException(
             status_code=429,
             detail="Too many requests. Please wait a moment before trying again.",
             headers={"Retry-After": "60"}
         )
-    
+
     # Process request
     response = await call_next(request)
-    
-    # Add rate limit headers
+
+    # Add rate limit and client info headers
     response.headers["X-RateLimit-Limit"] = str(RATE_LIMIT_PER_MINUTE)
     response.headers["X-RateLimit-Remaining"] = str(remaining)
-    
+    if client_identifier:
+        response.headers["X-Real-Client-IP"] = client_identifier
+
     return response
 
 
