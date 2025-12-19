@@ -1,9 +1,10 @@
 /**
  * Histogram Chart Component
  * Displays RGB histogram for images
+ * Optimized with React.memo for mobile performance
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, memo } from 'react';
 
 interface HistogramChartProps {
   histogram: {
@@ -15,7 +16,7 @@ interface HistogramChartProps {
   className?: string;
 }
 
-const HistogramChart: React.FC<HistogramChartProps> = ({ 
+const HistogramChart: React.FC<HistogramChartProps> = memo(({ 
   histogram, 
   title, 
   className = '' 
@@ -237,7 +238,9 @@ const HistogramChart: React.FC<HistogramChartProps> = ({
       )}
     </>
   );
-};
+});
+
+HistogramChart.displayName = 'HistogramChart';
 
 export default HistogramChart;
 

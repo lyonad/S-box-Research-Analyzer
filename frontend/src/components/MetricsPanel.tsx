@@ -1,9 +1,10 @@
 /**
  * Metrics Panel Component
  * Displays cryptographic strength test results
+ * Optimized with React.memo for mobile performance
  */
 
-import React from 'react';
+import React, { memo } from 'react';
 import { AnalysisResults } from '../types';
 
 const ACCENT_GRADIENTS: Record<string, string> = {
@@ -31,7 +32,7 @@ interface MetricCardProps {
   accentColor?: string;
 }
 
-const MetricCard: React.FC<MetricCardProps> = ({ title, icon, metrics, accentColor = 'blue' }) => {
+const MetricCard: React.FC<MetricCardProps> = memo(({ title, icon, metrics, accentColor = 'blue' }) => {
   const getStatusColor = (status?: 'good' | 'warning' | 'info') => {
     switch (status) {
       case 'good':
@@ -76,9 +77,11 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, icon, metrics, accentCol
       </div>
     </div>
   );
-};
+});
 
-const MetricsPanel: React.FC<MetricsPanelProps> = ({ results, title, accentColor = 'blue' }) => {
+MetricCard.displayName = 'MetricCard';
+
+const MetricsPanel: React.FC<MetricsPanelProps> = memo(({ results, title, accentColor = 'blue' }) => {
   // Determine status based on values
   const getNLStatus = (avg: number): 'good' | 'warning' | 'info' => {
     if (avg >= 110) return 'good';
@@ -290,7 +293,9 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({ results, title, accentColor
       </div>
     </div>
   );
-};
+});
+
+MetricsPanel.displayName = 'MetricsPanel';
 
 export default MetricsPanel;
 

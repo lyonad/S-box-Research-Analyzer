@@ -1,9 +1,10 @@
 /**
  * S-Box Grid Component
  * Displays S-box values in a 16x16 hexadecimal grid
+ * Optimized with React.memo for mobile performance
  */
 
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 
 interface SBoxGridProps {
   sbox: number[];
@@ -11,7 +12,7 @@ interface SBoxGridProps {
   highlightColor?: string;
 }
 
-const SBoxGrid: React.FC<SBoxGridProps> = ({ 
+const SBoxGrid: React.FC<SBoxGridProps> = memo({ 
   sbox, 
   title,
   highlightColor = 'bg-white'
@@ -165,7 +166,9 @@ const SBoxGrid: React.FC<SBoxGridProps> = ({
       </div>
     </div>
   );
-};
+});
+
+SBoxGrid.displayName = 'SBoxGrid';
 
 export default SBoxGrid;
 
