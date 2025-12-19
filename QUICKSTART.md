@@ -187,6 +187,20 @@ VITE_API_BASE_URL=http://localhost:8000
 ```
 3. Restart frontend: `npm run dev`
 
+### ❌ TypeScript Build Error (Property 'env' does not exist)
+**Problem:** TypeScript tidak recognize `import.meta.env`
+
+**Solution:**
+File `src/vite-env.d.ts` sudah dibuat. Jika masih error:
+```bash
+# Delete node_modules dan reinstall
+rm -rf node_modules
+npm install
+
+# Clear TypeScript cache
+rm -rf .tsc-cache
+```
+
 ---
 
 ## 📦 Production Deployment
