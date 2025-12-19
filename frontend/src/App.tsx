@@ -2,10 +2,10 @@
  * Main Application Component
  * AES S-box Research Analyzer
  * Comprehensive platform for affine matrices exploration and S-box research
- * Optimized with lazy loading and useMemo for mobile performance
+ * Optimized with lazy loading for mobile performance
  */
 
-import { useState, useEffect, useRef, lazy, Suspense, useMemo } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import TeamSection from './components/TeamSection';
