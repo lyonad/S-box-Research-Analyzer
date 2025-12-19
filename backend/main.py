@@ -14,9 +14,12 @@ import base64
 import io
 import math
 import json
+import asyncio
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 import numpy as np
 from PIL import Image
 import os
+import gc
 import ipaddress
 from dotenv import load_dotenv
 
@@ -46,6 +49,21 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
 )
+
+# ==========================================
+# CONCURRENT PROCESSING CONFIGURATION
+# ==========================================
+
+# Thread pool for I/O-bound operations (image reading/saving)
+thread_pool = ThreadPoolExecutor(max_workers=int(os.getenv('MAX_NUM_THREADS', 16)))
+
+# Semaphore to limit concurrent heavy image operations
+# Prevents server overload when multiple users upload large images
+MAX_CONCURRENT_IMAGE_OPS = int(os.getenv('MAX_CONCURRENT_IMAGE_OPS', 4))
+image_processing_semaphore = asyncio.Semaphore(MAX_CONCURRENT_IMAGE_OPS)
+
+logger.info(f"Thread pool initialized with {thread_pool._max_workers} workers")
+logger.info(f"Max concurrent image operations: {MAX_CONCURRENT_IMAGE_OPS}")
 
 # ==========================================
 # SECURITY CONFIGURATION
@@ -99,8 +117,15 @@ async def log_requests(request: Request, call_next):
             logger.info(f"✅ RESPONSE: {response.status_code} for {request.method} {request.url.path}")
         return response
     except Exception as e:
+        import traceback
         logger.error(f"❌ ERROR processing {request.method} {request.url.path}: {e}")
-        raise
+        logger.error(f"   Traceback: {traceback.format_exc()}")
+        # Return 500 error instead of crashing
+        from fastapi.responses import JSONResponse
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Internal server error: {str(e)}"}
+        )
 
 app.add_middleware(
     CORSMiddleware,
@@ -863,6 +888,23 @@ def decrypt(request: DecryptRequest):
         import traceback
         raise HTTPException(status_code=500, detail=f"{str(e)}\n{traceback.format_exc()}")
 
+# ==========================================
+# ASYNC HELPER FUNCTIONS FOR CPU-INTENSIVE OPS
+# ==========================================
+
+def _process_image_histogram(img_array: np.ndarray) -> Dict[str, list]:
+    """CPU-intensive: Calculate histogram in thread pool"""
+    return {
+        'red': np.histogram(img_array[:, :, 0].flatten(), bins=256, range=(0, 256))[0].tolist(),
+        'green': np.histogram(img_array[:, :, 1].flatten(), bins=256, range=(0, 256))[0].tolist(),
+        'blue': np.histogram(img_array[:, :, 2].flatten(), bins=256, range=(0, 256))[0].tolist(),
+    }
+
+def _encrypt_image_data(image_data: bytes, key_bytes: bytes, sbox_type: str, custom_sbox_list: Optional[list]) -> bytes:
+    """CPU-intensive: Encrypt image data in thread pool"""
+    cipher = create_cipher(sbox_type.lower(), custom_sbox_list)
+    return cipher.encrypt(image_data, key_bytes)
+
 @app.post("/encrypt-image")
 async def encrypt_image(
     file: UploadFile = File(...),
@@ -870,79 +912,167 @@ async def encrypt_image(
     sbox_type: str = Form("k44"),
     custom_sbox: Optional[str] = Form(None)
 ):
-    try:
-        custom_sbox_list = None
-        if sbox_type.lower() == 'custom':
-            if custom_sbox:
-                custom_sbox_list = json.loads(custom_sbox)
-        
-        start_time = time.time()
-        # read upload with limit to avoid OOM/timeouts
-        image_bytes = await _read_upload_file_limited(file)
-        
+    # Use semaphore to limit concurrent heavy operations
+    async with image_processing_semaphore:
         try:
+            logger.info(f"🎨 Starting image encryption - sbox_type: {sbox_type} (Queue: {MAX_CONCURRENT_IMAGE_OPS - image_processing_semaphore._value}/{MAX_CONCURRENT_IMAGE_OPS})")
+            
+            custom_sbox_list = None
+            if sbox_type.lower() == 'custom':
+                if custom_sbox:
+                    custom_sbox_list = json.loads(custom_sbox)
+            
+            start_time = time.time()
+            # read upload with limit to avoid OOM/timeouts
+            logger.info(f"📥 Reading uploaded file: {file.filename}")
+            image_bytes = await _read_upload_file_limited(file)
+            logger.info(f"✅ File read complete: {len(image_bytes) / 1024 / 1024:.2f}MB")
+            
+            logger.info("🖼️  Opening image...")
             img = Image.open(io.BytesIO(image_bytes))
+            original_size = img.size
+            logger.info(f"📐 Original image size: {original_size[0]}x{original_size[1]}")
+            
             if img.mode not in ('RGB', 'RGBA'):
                 img = img.convert('RGB')
+                logger.info(f"🔄 Converted image mode to RGB")
+            
+            # Support up to 8K resolution (8192x4320)
+            max_dimension = 8192  # Max 8K resolution - user request!
+            if max(img.size) > max_dimension:
+                logger.warning(f"⚠️  Image exceeds 8K resolution ({img.size}), resizing to max {max_dimension}px...")
+                img.thumbnail((max_dimension, max_dimension), Image.Resampling.LANCZOS)
+                logger.info(f"✅ Resized to {img.size}")
+            else:
+                logger.info(f"✅ Image size OK: {img.size[0]}x{img.size[1]} (within 8K limit)")
+            
+            # Calculate histogram with memory-efficient method
+            logger.info("📊 Converting to NumPy array...")
             img_array = np.array(img)
-            original_histogram = {
-                'red': np.histogram(img_array[:, :, 0].flatten(), bins=256, range=(0, 256))[0].tolist(),
-                'green': np.histogram(img_array[:, :, 1].flatten(), bins=256, range=(0, 256))[0].tolist(),
-                'blue': np.histogram(img_array[:, :, 2].flatten(), bins=256, range=(0, 256))[0].tolist(),
-            }
+            array_size_mb = img_array.nbytes / 1024 / 1024
+            logger.info(f"📊 Array shape: {img_array.shape}, size: {array_size_mb:.2f}MB")
+            
+            # Safety check: reject if array is too large (8K RGB ~ 100MB)
+            if array_size_mb > 200:
+                logger.error(f"❌ Image array too large: {array_size_mb:.2f}MB > 200MB limit")
+                raise HTTPException(status_code=413, detail=f"Image too large to process ({array_size_mb:.1f}MB). Maximum supported: 8K resolution (8192x4320).")
+            elif array_size_mb > 100:
+                logger.warning(f"⚠️ Processing large image: {array_size_mb:.2f}MB - this may take a while...")
+            
+            try:
+                logger.info("📈 Calculating original histogram (async in thread pool)...")
+                # Run CPU-intensive histogram calculation in thread pool to avoid blocking
+                original_histogram = await asyncio.get_event_loop().run_in_executor(
+                    thread_pool, 
+                    _process_image_histogram, 
+                    img_array
+                )
+                logger.info("✅ Original histogram calculated")
+            except MemoryError:
+                logger.error("❌ Memory error during histogram calculation")
+                raise HTTPException(status_code=413, detail="Image too large to process. Please use a smaller image.")
+            except Exception as e:
+                logger.error(f"❌ Histogram error: {e}")
+                raise
+            
+            # Clean up array to free memory
+            logger.info("🧹 Cleaning up NumPy array...")
+            del img_array
+            if array_size_mb > 50:
+                gc.collect()  # Force garbage collection for large images
+                logger.info("🧹 Forced garbage collection")
+            
+            logger.info("💾 Converting image to PNG bytes...")
             img_buffer = io.BytesIO()
             img.save(img_buffer, format='PNG')
             image_data = img_buffer.getvalue()
-        except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Invalid image: {str(e)}")
+            img_buffer.close()
+            logger.info(f"✅ Image data ready: {len(image_data) / 1024 / 1024:.2f}MB")
 
-        key_bytes = _prepare_key(key)
-        cipher = create_cipher(sbox_type.lower(), custom_sbox_list)
-        ciphertext_bytes = cipher.encrypt(image_data, key_bytes)
-        
-        # Header length + data
-        data_len = len(ciphertext_bytes)
-        length_header = data_len.to_bytes(4, byteorder='big')
-        data_with_length = length_header + ciphertext_bytes
-        total_data_len = len(data_with_length)
-        
-        # Calculate image size
-        pixels_needed = math.ceil(total_data_len / 3)
-        side = int(math.ceil(math.sqrt(pixels_needed)))
-        total_pixels = side * side
-        total_bytes_needed = total_pixels * 3
-        
-        padded_data = data_with_length + b'\x00' * (total_bytes_needed - total_data_len)
-        encrypted_img = Image.frombytes('RGB', (side, side), padded_data[:total_bytes_needed])
-        
-        # Encrypted histogram
-        encrypted_array = np.array(encrypted_img)
-        encrypted_histogram = {
-            'red': np.histogram(encrypted_array[:, :, 0].flatten(), bins=256, range=(0, 256))[0].tolist(),
-            'green': np.histogram(encrypted_array[:, :, 1].flatten(), bins=256, range=(0, 256))[0].tolist(),
-            'blue': np.histogram(encrypted_array[:, :, 2].flatten(), bins=256, range=(0, 256))[0].tolist(),
-        }
-        
-        output_buffer = io.BytesIO()
-        encrypted_img.save(output_buffer, format='PNG')
-        encrypted_image_bytes = output_buffer.getvalue()
-        
-        encryption_time = (time.time() - start_time) * 1000
-        histogram_data = {'original': original_histogram, 'encrypted': encrypted_histogram}
-        histogram_b64 = base64.b64encode(json.dumps(histogram_data).encode('utf-8')).decode('utf-8')
-        
-        return Response(
-            content=encrypted_image_bytes,
-            media_type="image/png",
-            headers={
-                "X-Sbox-Type": sbox_type.lower(),
-                "X-Encryption-Time": f"{encryption_time:.2f}",
-                "X-Histogram-Data": histogram_b64,
-                "Content-Disposition": 'attachment; filename="encrypted_image.png"'
-            }
-        )
-    except Exception as e:
-        import traceback
+            logger.info("🔐 Preparing encryption...")
+            key_bytes = _prepare_key(key)
+            logger.info(f"🔒 Encrypting {len(image_data) / 1024:.2f}KB of image data (async in thread pool)...")
+            
+            # Run CPU-intensive encryption in thread pool to avoid blocking
+            ciphertext_bytes = await asyncio.get_event_loop().run_in_executor(
+                thread_pool,
+                _encrypt_image_data,
+                image_data, key_bytes, sbox_type, custom_sbox_list
+            )
+            logger.info(f"✅ Encryption complete: {len(ciphertext_bytes) / 1024:.2f}KB")
+            
+            # Header length + data
+            logger.info("📦 Preparing encrypted image data...")
+            data_len = len(ciphertext_bytes)
+            length_header = data_len.to_bytes(4, byteorder='big')
+            data_with_length = length_header + ciphertext_bytes
+            total_data_len = len(data_with_length)
+            
+            # Calculate image size
+            pixels_needed = math.ceil(total_data_len / 3)
+            side = int(math.ceil(math.sqrt(pixels_needed)))
+            total_pixels = side * side
+            total_bytes_needed = total_pixels * 3
+            logger.info(f"📐 Creating encrypted image: {side}x{side} pixels")
+            
+            padded_data = data_with_length + b'\\x00' * (total_bytes_needed - total_data_len)
+            encrypted_img = Image.frombytes('RGB', (side, side), padded_data[:total_bytes_needed])
+            logger.info("✅ Encrypted image created")
+            
+            # Encrypted histogram - with memory protection
+            logger.info("📈 Calculating encrypted histogram (async in thread pool)...")
+            try:
+                encrypted_array = np.array(encrypted_img)
+                enc_size_mb = encrypted_array.nbytes / 1024 / 1024
+                logger.info(f"📊 Encrypted array shape: {encrypted_array.shape}, size: {enc_size_mb:.2f}MB")
+                
+                # Run histogram calculation in thread pool
+                encrypted_histogram = await asyncio.get_event_loop().run_in_executor(
+                    thread_pool,
+                    _process_image_histogram,
+                    encrypted_array
+                )
+                logger.info("✅ Encrypted histogram calculated")
+                # Clean up encrypted array
+                del encrypted_array
+            except MemoryError:
+                logger.error("❌ Memory error during encrypted histogram calculation")
+                # Continue without histogram data
+                encrypted_histogram = {'red': [], 'green': [], 'blue': []}
+            except Exception as e:
+                logger.error(f"❌ Error calculating encrypted histogram: {e}")
+                encrypted_histogram = {'red': [], 'green': [], 'blue': []}
+            
+            logger.info("💾 Saving encrypted image to buffer...")
+            output_buffer = io.BytesIO()
+            encrypted_img.save(output_buffer, format='PNG')
+            encrypted_image_bytes = output_buffer.getvalue()
+            output_buffer.close()
+            logger.info(f"✅ Encrypted image ready: {len(encrypted_image_bytes) / 1024:.2f}KB")
+            
+            encryption_time = (time.time() - start_time) * 1000
+            logger.info(f"⏱️  Total encryption time: {encryption_time:.2f}ms")
+            
+            histogram_data = {'original': original_histogram, 'encrypted': encrypted_histogram}
+            histogram_b64 = base64.b64encode(json.dumps(histogram_data).encode('utf-8')).decode('utf-8')
+            
+            logger.info("🎉 Image encryption successful! Sending response...")
+            return Response(
+                content=encrypted_image_bytes,
+                media_type="image/png",
+                headers={
+                    "X-Sbox-Type": sbox_type.lower(),
+                    "X-Encryption-Time": f"{encryption_time:.2f}",
+                    "X-Histogram-Data": histogram_b64,
+                    "Content-Disposition": 'attachment; filename="encrypted_image.png"'
+                }
+            )
+        except HTTPException:
+            raise
+        except Exception as e:
+            import traceback
+        logger.error(f"❌ FATAL ERROR in encrypt_image: {e}")
+        logger.error(f"   Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"{str(e)}\n{traceback.format_exc()}")
 
 @app.post("/decrypt-image")
