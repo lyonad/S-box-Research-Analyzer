@@ -818,26 +818,16 @@ async def analyze(request: SBoxAnalyzeRequest):
 @app.post("/compare", response_model=ComparisonResponse)
 async def compare(request: ComparisonRequest = None):
     """
-    Compare K44, AES, and optionally custom S-box with parallel processing
+    Compare K44, AES, and optionally custom S-box with TRUE parallel processing
+    NO CACHE - Every request is processed fresh and independently
     """
     try:
         if request is None:
             request = ComparisonRequest()
         
-        # Generate cache key
-        cache_data = {
-            "custom_sbox": request.custom_sbox if request.custom_sbox else None
-        }
-        cache_key = generate_cache_key(cache_data)
-        
-        # Check cache first
-        cached_result = get_from_cache(cache_key)
-        if cached_result:
-            logger.info(f"✅ Returning cached comparison result")
-            return ComparisonResponse(**cached_result)
-        
-        # ⚡ Parallel processing - each request processed independently
-        logger.info(f"⚡ Processing comparison request independently (no deduplication)")
+        # ⚡ FRESH PROCESSING - NO CACHE, NO DEDUPLICATION
+        # Every request from any device/user gets processed independently
+        logger.info(f"⚡ Processing NEW comparison request (no cache, fresh analysis)")
         
         start_time = time.time()
         k44_sbox = generator.generate_k44_sbox()
@@ -887,10 +877,9 @@ async def compare(request: ComparisonRequest = None):
             "analysis_time_ms": round(analysis_time, 2)
         }
         
-        # Save to cache
-        save_to_cache(cache_key, result_dict)
+        # NO CACHE - Fresh results every time
         
-        logger.info(f"✅ Comparison completed in {analysis_time:.2f}ms")
+        logger.info(f"✅ Fresh comparison completed in {analysis_time:.2f}ms")
         return ComparisonResponse(**result_dict)
             
     except HTTPException:
