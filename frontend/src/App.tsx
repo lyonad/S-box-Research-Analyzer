@@ -2,9 +2,10 @@
  * Main Application Component
  * AES S-box Research Analyzer
  * Comprehensive platform for affine matrices exploration and S-box research
+ * Optimized with lazy loading for mobile performance
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import TeamSection from './components/TeamSection';
@@ -17,11 +18,13 @@ import MetricsPanel from './components/MetricsPanel';
 import ComparisonTable from './components/ComparisonTable';
 import LoadingSpinner from './components/LoadingSpinner';
 import EncryptionPanel from './components/EncryptionPanel';
-import ImageEncryptionPanel from './components/ImageEncryptionPanel';
 import ValidationSummary from './components/ValidationSummary';
 import SecurityScoreboard, { SecurityScoreEntry } from './components/SecurityScoreboard';
 import apiService from './api';
 import { ComparisonData, MetricComparison, AnalysisResults, SBoxValidationResult } from './types';
+
+// Lazy load heavy components for better mobile performance
+const ImageEncryptionPanel = lazy(() => import('./components/ImageEncryptionPanel'));
 
 // Default K44 matrix (from paper - best performer)
 const DEFAULT_K44_MATRIX = [
@@ -850,10 +853,16 @@ function App() {
                 Encrypt and decrypt images using AES-128. Encrypted images are visible as cipher images.
               </p>
             </div>
-            <ImageEncryptionPanel
-              customSBox={customSBox}
-              customSBoxName={customSBoxParams?.matrixName || 'Custom'}
-            />
+            <Suspense fallback={
+              <div className="glass-effect rounded-xl p-8 border border-text-primary/20">
+                <LoadingSpinner />
+              </div>
+            }>
+              <ImageEncryptionPanel
+                customSBox={customSBox}
+                customSBoxName={customSBoxParams?.matrixName || 'Custom'}
+              />
+            </Suspense>
           </div>
         </div>
 

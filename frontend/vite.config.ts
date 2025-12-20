@@ -7,12 +7,28 @@ export default defineConfig({
   server: {
     port: 3000,
     proxy: {
+      // Proxy API requests in development mode
       '/api': {
-        target: 'http://localhost:8000',
+        target: process.env.VITE_API_BASE_URL || 'http://localhost:8000',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
     },
   },
+  // Define environment variable prefix (optional)
+  envPrefix: 'VITE_',
+  // Build optimization
+  build: {
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+          'chart-vendor': ['recharts'],
+        },
+      },
+    },
+  },
 })
+
 

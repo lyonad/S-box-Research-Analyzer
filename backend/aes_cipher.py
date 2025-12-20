@@ -210,12 +210,17 @@ class AESCipher:
         if len(plaintext) != self.N_BLOCK:
             raise ValueError(f"Plaintext must be exactly {self.N_BLOCK} bytes")
         
-        # Expand key
-        round_keys = self._key_expansion(key)
-        
         # Convert plaintext to state (list of bytes)
         state = list(plaintext)
         
+        # NOTE: This method expects that round keys are provided by caller
+        # for performance. If caller passed a full key instead, expand once.
+        # Expand key if caller provided `key` instead of precomputed round keys
+        if isinstance(key, (bytes, bytearray)):
+            round_keys = self._key_expansion(key)
+        else:
+            round_keys = key
+
         # Initial round: AddRoundKey
         state = self._add_round_key(state, round_keys[0])
         
@@ -247,11 +252,14 @@ class AESCipher:
         if len(ciphertext) != self.N_BLOCK:
             raise ValueError(f"Ciphertext must be exactly {self.N_BLOCK} bytes")
         
-        # Expand key
-        round_keys = self._key_expansion(key)
-        
         # Convert ciphertext to state
         state = list(ciphertext)
+
+        # Expand key if caller passed raw key; otherwise `key` may be round_keys
+        if isinstance(key, (bytes, bytearray)):
+            round_keys = self._key_expansion(key)
+        else:
+            round_keys = key
         
         # Initial round: AddRoundKey (with last round key)
         state = self._add_round_key(state, round_keys[self.N_ROUNDS])
@@ -315,19 +323,22 @@ class AESCipher:
         
         # Pad plaintext
         padded_data = self._pkcs7_pad(plaintext, self.N_BLOCK)
-        
+
+        # Precompute round keys once for this encryption
+        round_keys = self._key_expansion(key)
+
         # Encrypt in CBC mode
         ciphertext = b''
         prev_block = iv
-        
+
         for i in range(0, len(padded_data), self.N_BLOCK):
             block = padded_data[i:i+self.N_BLOCK]
-            
+
             # XOR with previous ciphertext (or IV for first block)
             xored = bytes([block[j] ^ prev_block[j] for j in range(self.N_BLOCK)])
-            
-            # Encrypt block
-            encrypted = self.encrypt_block(xored, key)
+
+            # Encrypt block using precomputed round keys
+            encrypted = self.encrypt_block(xored, round_keys)
             ciphertext += encrypted
             prev_block = encrypted
         
@@ -351,21 +362,24 @@ class AESCipher:
         # Extract IV and encrypted data
         iv = ciphertext[:16]
         encrypted_data = ciphertext[16:]
-        
+
+        # Precompute round keys once for this decryption
+        round_keys = self._key_expansion(key)
+
         # Decrypt in CBC mode
         plaintext = b''
         prev_block = iv
-        
+
         for i in range(0, len(encrypted_data), self.N_BLOCK):
             block = encrypted_data[i:i+self.N_BLOCK]
-            
-            # Decrypt block
-            decrypted = self.decrypt_block(block, key)
-            
+
+            # Decrypt block using precomputed round keys
+            decrypted = self.decrypt_block(block, round_keys)
+
             # XOR with previous ciphertext (or IV for first block)
             xored = bytes([decrypted[j] ^ prev_block[j] for j in range(self.N_BLOCK)])
             plaintext += xored
-            
+
             prev_block = block
         
         # Remove padding
