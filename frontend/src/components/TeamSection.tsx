@@ -14,22 +14,22 @@ interface TeamMember {
 const teamMembers: TeamMember[] = [
   {
     name: 'Riski Yuniar Pratama',
-    role: 'Cryptographer | 2304130134',
+    role: 'Mas-mas Jawa Penyabar | 2304130134',
     image: '/images/Person 1.jpg',
   },
   {
     name: 'Naufal Tipasha Denyana',
-    role: 'Developer | 2304130115',
+    role: 'Yapping Master | 2304130115',
     image: '/images/Person 2.jpg',
   },
   {
     name: 'Lyon Ambrosio Djuanda',
-    role: 'Cryptographer | 2304130098',
+    role: 'Penunduk Claude OPUS 4.5 & GPT 5.2 Codex | 2304130098',
     image: '/images/Person 3.jpg',
   },
   {
     name: 'Gangsar Reka Pambudi',
-    role: 'Developer | 2304130130',
+    role: 'Kang Nyapu Kodingan AInya Yono | 2304130130',
     image: '/images/Person 4.jpg',
   },
 ];

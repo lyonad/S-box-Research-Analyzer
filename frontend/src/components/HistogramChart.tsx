@@ -26,6 +26,13 @@ const HistogramChart: React.FC<HistogramChartProps> = memo(({
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
+    // Defensive: ensure histogram object and channels are arrays of length 256
+    const safeHistogram = {
+      red: Array.isArray(histogram?.red) && histogram.red.length === 256 ? histogram.red : new Array(256).fill(0),
+      green: Array.isArray(histogram?.green) && histogram.green.length === 256 ? histogram.green : new Array(256).fill(0),
+      blue: Array.isArray(histogram?.blue) && histogram.blue.length === 256 ? histogram.blue : new Array(256).fill(0),
+    };
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -40,10 +47,10 @@ const HistogramChart: React.FC<HistogramChartProps> = memo(({
     ctx.fillRect(0, 0, width, height);
 
     // Find max value for normalization
-    const maxRed = Math.max(...histogram.red);
-    const maxGreen = Math.max(...histogram.green);
-    const maxBlue = Math.max(...histogram.blue);
-    const maxValue = Math.max(maxRed, maxGreen, maxBlue);
+    const maxRed = Math.max(...safeHistogram.red);
+    const maxGreen = Math.max(...safeHistogram.green);
+    const maxBlue = Math.max(...safeHistogram.blue);
+    const maxValue = Math.max(maxRed, maxGreen, maxBlue, 1); // avoid divide by zero
 
     // Draw grid
     ctx.strokeStyle = '#2a2a3e';
@@ -63,21 +70,21 @@ const HistogramChart: React.FC<HistogramChartProps> = memo(({
     // Draw Red channel
     ctx.fillStyle = 'rgba(255, 0, 0, 0.6)';
     for (let i = 0; i < 256; i++) {
-      const barHeight = histogram.red[i] * scale;
+      const barHeight = safeHistogram.red[i] * scale;
       ctx.fillRect(i * barWidth, height - barHeight - 10, barWidth - 1, barHeight);
     }
 
     // Draw Green channel
     ctx.fillStyle = 'rgba(0, 255, 0, 0.6)';
     for (let i = 0; i < 256; i++) {
-      const barHeight = histogram.green[i] * scale;
+      const barHeight = safeHistogram.green[i] * scale;
       ctx.fillRect(i * barWidth, height - barHeight - 10, barWidth - 1, barHeight);
     }
 
     // Draw Blue channel
     ctx.fillStyle = 'rgba(0, 0, 255, 0.6)';
     for (let i = 0; i < 256; i++) {
-      const barHeight = histogram.blue[i] * scale;
+      const barHeight = safeHistogram.blue[i] * scale;
       ctx.fillRect(i * barWidth, height - barHeight - 10, barWidth - 1, barHeight);
     }
 

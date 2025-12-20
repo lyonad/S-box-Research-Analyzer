@@ -141,6 +141,23 @@ const ImageEncryptionPanel: React.FC<ImageEncryptionPanelProps> = ({
         }
       }
 
+      // Normalize histogram data to safe shape (each channel must be array length 256)
+      const normalize = (h: any): HistogramData => {
+        const zero = new Array(256).fill(0);
+        if (!h || typeof h !== 'object') return { red: zero, green: zero, blue: zero };
+        const red = Array.isArray(h.red) && h.red.length === 256 ? h.red : zero;
+        const green = Array.isArray(h.green) && h.green.length === 256 ? h.green : zero;
+        const blue = Array.isArray(h.blue) && h.blue.length === 256 ? h.blue : zero;
+        return { red, green, blue };
+      };
+
+      if (histograms) {
+        histograms = {
+          original: normalize(histograms.original),
+          encrypted: normalize(histograms.encrypted),
+        };
+      }
+
       setResult({
         imageUrl,
         sboxType: sboxTypeHeader || sboxType,

@@ -23,7 +23,9 @@ const ImageSecurityMetrics: React.FC<ImageSecurityMetricsProps> = ({ metrics }) 
   const IDEAL_CORRELATION = 0.0; // Lower is better (encrypted should be close to 0)
 
   const getQualityBadge = (value: number, ideal: number, tolerance: number, higherIsBetter: boolean = true) => {
-    const diff = Math.abs(value - ideal);
+    // If higherIsBetter, values below ideal are worse (use one-sided diff).
+    // Otherwise use absolute difference.
+    const diff = higherIsBetter ? Math.max(0, ideal - value) : Math.abs(value - ideal);
     if (diff <= tolerance) {
       return { text: 'Excellent', color: 'text-green-400', bg: 'bg-green-400/20' };
     } else if (diff <= tolerance * 2) {
