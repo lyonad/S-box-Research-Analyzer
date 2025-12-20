@@ -466,6 +466,46 @@ const ImageEncryptionPanel: React.FC<ImageEncryptionPanelProps> = ({
         </button>
       </div>
 
+      {/* Limitations Notes */}
+      <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-surface-dark/30 rounded-lg border border-text-primary/10">
+        <h4 className="font-body text-xs sm:text-sm font-semibold text-white mb-2 flex items-center gap-2">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Limitasi Program
+        </h4>
+        <ul className="space-y-1.5 text-xs sm:text-sm text-text-primary/80 font-body">
+          <li className="flex items-start gap-2">
+            <span className="text-text-primary/50 mt-0.5">•</span>
+            <span><strong>Ukuran file:</strong> Maksimal 8 MB per upload</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-text-primary/50 mt-0.5">•</span>
+            <span><strong>Resolusi gambar:</strong> Maksimal 8K (8192×4320). Gambar lebih besar akan di-resize otomatis</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-text-primary/50 mt-0.5">•</span>
+            <span><strong>Ukuran memori:</strong> Maksimal 200 MB. Gambar &gt; 100 MB mungkin memakan waktu lebih lama</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-text-primary/50 mt-0.5">•</span>
+            <span><strong>Timeout:</strong> Maksimal 3 menit per proses. Jika timeout, coba dengan gambar yang lebih kecil</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-text-primary/50 mt-0.5">•</span>
+            <span><strong>Format gambar:</strong> Semua format gambar didukung, akan dikonversi ke RGB secara otomatis</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-text-primary/50 mt-0.5">•</span>
+            <span><strong>Rate limit:</strong> Maksimal 60 request per menit per IP</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-text-primary/50 mt-0.5">•</span>
+            <span><strong>Operasi bersamaan:</strong> Maksimal 4 operasi gambar diproses secara bersamaan</span>
+          </li>
+        </ul>
+      </div>
+
       {result && (
         <div className="mt-4 sm:mt-6">
           <div className="flex items-center justify-between mb-3 sm:mb-4">
