@@ -41,7 +41,7 @@ const ImageSecurityMetrics: React.FC<ImageSecurityMetricsProps> = ({ metrics }) 
     return (
       <div className="mt-4 sm:mt-6 p-4 bg-surface-dark/50 rounded-lg border border-text-primary/20">
         <p className="text-sm text-text-primary/70 font-body">
-          Security metrics are not available. This may occur if the analysis encountered an error or the image is too large.
+          Security metrics are not available. The image may be unsuitable for analysis or too large to process.
         </p>
       </div>
     );
