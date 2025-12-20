@@ -22,6 +22,31 @@ const ImageSecurityMetrics: React.FC<ImageSecurityMetricsProps> = ({ metrics }) 
   const IDEAL_UACI = 33.4635; // Percentage
   const IDEAL_CORRELATION = 0.0; // Lower is better (encrypted should be close to 0)
 
+  // Defensive checks: if metrics are incomplete or missing, show a message
+  if (!metrics || 
+      !metrics.entropy || 
+      !metrics.entropy.encrypted || 
+      !metrics.entropy.encrypted.overall ||
+      !metrics.entropy.original ||
+      !metrics.entropy.original.overall ||
+      !metrics.npcr ||
+      metrics.npcr.overall === undefined ||
+      !metrics.uaci ||
+      metrics.uaci.overall === undefined ||
+      !metrics.correlation ||
+      !metrics.correlation.encrypted ||
+      metrics.correlation.encrypted.average === undefined ||
+      !metrics.correlation.original ||
+      metrics.correlation.original.average === undefined) {
+    return (
+      <div className="mt-4 sm:mt-6 p-4 bg-surface-dark/50 rounded-lg border border-text-primary/20">
+        <p className="text-sm text-text-primary/70 font-body">
+          Security metrics are not available. This may occur if the analysis encountered an error or the image is too large.
+        </p>
+      </div>
+    );
+  }
+
   const getQualityBadge = (value: number, ideal: number, tolerance: number, higherIsBetter: boolean = true) => {
     // If higherIsBetter, values below ideal are worse (use one-sided diff).
     // Otherwise use absolute difference.
