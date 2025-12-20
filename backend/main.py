@@ -34,6 +34,7 @@ from cryptographic_tests import analyze_sbox
 from aes_cipher import create_cipher
 from report_exporter import generate_analysis_csv
 from sbox_validations import validate_sbox
+from image_encryption_tests import analyze_image_encryption
 from rate_limiter import RateLimiter
 import logging
 
@@ -820,6 +821,9 @@ async def compare(request: ComparisonRequest = None):
     """
     Compare K44, AES, and optionally custom S-box with TRUE parallel processing
     NO CACHE - Every request is processed fresh and independently
+    
+    ALWAYS returns K44 and AES comparison, plus custom if provided.
+    If custom S-box validation fails, comparison still succeeds with K44 and AES only.
     """
     try:
         if request is None:
@@ -830,36 +834,78 @@ async def compare(request: ComparisonRequest = None):
         logger.info(f"⚡ Processing NEW comparison request (no cache, fresh analysis)")
         
         start_time = time.time()
-        k44_sbox = generator.generate_k44_sbox()
-        aes_sbox = generator.generate_aes_sbox()
+        
+        # ALWAYS generate K44 and AES (core comparison)
+        try:
+            k44_sbox = generator.generate_k44_sbox()
+            aes_sbox = generator.generate_aes_sbox()
+        except Exception as e:
+            logger.error(f"❌ Failed to generate K44/AES S-boxes: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to generate K44 or AES S-box: {str(e)}"
+            )
+        
+        # Validate and process custom S-box if provided
         custom_sbox = None
+        custom_analysis = None
+        custom_validation = None
+        
         if request.custom_sbox:
-            validate_sbox_values(request.custom_sbox)
-            custom_sbox = request.custom_sbox
+            try:
+                # Validate custom S-box format
+                validate_sbox_values(request.custom_sbox)
+                custom_sbox = request.custom_sbox
+                logger.info("✅ Custom S-box validated successfully")
+            except HTTPException:
+                # Re-raise validation errors
+                raise
+            except Exception as e:
+                logger.warning(f"⚠️ Custom S-box validation failed: {e}, continuing with K44 and AES only")
+                # Continue without custom - comparison still works with K44 and AES
+        
         generation_time = (time.time() - start_time) * 1000
         
         analysis_start = time.time()
         
-        # Run analyses in thread pool
+        # ALWAYS analyze K44 and AES in parallel (core comparison)
         loop = asyncio.get_event_loop()
-        k44_raw, aes_raw = await asyncio.gather(
-            loop.run_in_executor(thread_pool, analyze_sbox, k44_sbox),
-            loop.run_in_executor(thread_pool, analyze_sbox, aes_sbox)
-        )
+        try:
+            k44_raw, aes_raw = await asyncio.gather(
+                loop.run_in_executor(thread_pool, analyze_sbox, k44_sbox),
+                loop.run_in_executor(thread_pool, analyze_sbox, aes_sbox)
+            )
+            
+            k44_analysis = build_analysis_metrics(k44_raw)
+            aes_analysis = build_analysis_metrics(aes_raw)
+        except Exception as e:
+            logger.error(f"❌ Failed to analyze K44/AES S-boxes: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to analyze K44 or AES S-box: {str(e)}"
+            )
         
-        k44_analysis = build_analysis_metrics(k44_raw)
-        aes_analysis = build_analysis_metrics(aes_raw)
-        
-        # Custom S-box analysis if provided
-        custom_analysis = None
-        custom_validation = None
+        # Custom S-box analysis if provided and valid
         if custom_sbox:
-            custom_raw = await loop.run_in_executor(thread_pool, analyze_sbox, custom_sbox)
-            custom_analysis = build_analysis_metrics(custom_raw)
-            custom_validation = SBoxValidationModel(**validate_sbox(custom_sbox))
+            try:
+                custom_raw = await loop.run_in_executor(thread_pool, analyze_sbox, custom_sbox)
+                custom_analysis = build_analysis_metrics(custom_raw)
+                custom_validation = SBoxValidationModel(**validate_sbox(custom_sbox))
+                logger.info("✅ Custom S-box analyzed successfully")
+            except Exception as e:
+                logger.warning(f"⚠️ Custom S-box analysis failed: {e}, comparison continues with K44 and AES only")
+                # Continue without custom analysis - comparison still works
         
-        k44_validation = SBoxValidationModel(**validate_sbox(k44_sbox))
-        aes_validation = SBoxValidationModel(**validate_sbox(aes_sbox))
+        # ALWAYS validate K44 and AES
+        try:
+            k44_validation = SBoxValidationModel(**validate_sbox(k44_sbox))
+            aes_validation = SBoxValidationModel(**validate_sbox(aes_sbox))
+        except Exception as e:
+            logger.error(f"❌ Failed to validate K44/AES S-boxes: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to validate K44 or AES S-box: {str(e)}"
+            )
         
         analysis_time = (time.time() - analysis_start) * 1000
         
@@ -877,16 +923,15 @@ async def compare(request: ComparisonRequest = None):
             "analysis_time_ms": round(analysis_time, 2)
         }
         
-        # NO CACHE - Fresh results every time
-        
-        logger.info(f"✅ Fresh comparison completed in {analysis_time:.2f}ms")
+        logger.info(f"✅ Fresh comparison completed in {analysis_time:.2f}ms (K44: ✅, AES: ✅, Custom: {'✅' if custom_analysis else 'N/A'})")
         return ComparisonResponse(**result_dict)
             
     except HTTPException:
         raise
     except Exception as e:
         import traceback
-        raise HTTPException(status_code=500, detail=f"{str(e)}\n{traceback.format_exc()}")
+        logger.error(f"❌ FATAL ERROR in comparison: {e}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Comparison failed: {str(e)}")
 
 @app.post("/export-analysis")
 def export_analysis(request: ExportAnalysisRequest):
@@ -1091,6 +1136,9 @@ async def encrypt_image(
                 logger.error(f"❌ Histogram error: {e}")
                 raise
             
+            # Store original array for security analysis (before cleanup)
+            original_array = img_array.copy()
+            
             # Clean up array to free memory
             logger.info("🧹 Cleaning up NumPy array...")
             del img_array
@@ -1135,29 +1183,46 @@ async def encrypt_image(
             encrypted_img = Image.frombytes('RGB', (side, side), padded_data[:total_bytes_needed])
             logger.info("✅ Encrypted image created")
             
-            # Encrypted histogram - with memory protection
-            logger.info("📈 Calculating encrypted histogram (async in thread pool)...")
+            # Encrypted histogram and security analysis - with memory protection
+            logger.info("📈 Calculating encrypted histogram and security metrics (async in thread pool)...")
             try:
                 encrypted_array = np.array(encrypted_img)
                 enc_size_mb = encrypted_array.nbytes / 1024 / 1024
                 logger.info(f"📊 Encrypted array shape: {encrypted_array.shape}, size: {enc_size_mb:.2f}MB")
                 
-                # Run histogram calculation in thread pool
-                encrypted_histogram = await asyncio.get_event_loop().run_in_executor(
+                # Get original image array for comparison (resize encrypted to match original if needed)
+                original_array = np.array(img)
+                if encrypted_array.shape != original_array.shape:
+                    # Resize encrypted image to match original dimensions
+                    encrypted_resized = Image.fromarray(encrypted_array)
+                    encrypted_resized = encrypted_resized.resize((img.width, img.height), Image.Resampling.LANCZOS)
+                    encrypted_array = np.array(encrypted_resized)
+                
+                # Run histogram and security analysis in thread pool
+                def _calculate_histogram_and_security(enc_arr, orig_arr):
+                    histogram = _process_image_histogram(enc_arr)
+                    security = analyze_image_encryption(orig_arr, enc_arr)
+                    return histogram, security
+                
+                encrypted_histogram, security_analysis = await asyncio.get_event_loop().run_in_executor(
                     thread_pool,
-                    _process_image_histogram,
-                    encrypted_array
+                    _calculate_histogram_and_security,
+                    encrypted_array,
+                    original_array
                 )
-                logger.info("✅ Encrypted histogram calculated")
-                # Clean up encrypted array
+                logger.info("✅ Encrypted histogram and security metrics calculated")
+                # Clean up arrays
                 del encrypted_array
+                del original_array
             except MemoryError:
-                logger.error("❌ Memory error during encrypted histogram calculation")
-                # Continue without histogram data
+                logger.error("❌ Memory error during encrypted histogram/security calculation")
+                # Continue without histogram and security data
                 encrypted_histogram = {'red': [], 'green': [], 'blue': []}
+                security_analysis = {}
             except Exception as e:
-                logger.error(f"❌ Error calculating encrypted histogram: {e}")
+                logger.error(f"❌ Error calculating encrypted histogram/security: {e}")
                 encrypted_histogram = {'red': [], 'green': [], 'blue': []}
+                security_analysis = {}
             
             logger.info("💾 Saving encrypted image to buffer...")
             output_buffer = io.BytesIO()
@@ -1169,8 +1234,12 @@ async def encrypt_image(
             encryption_time = (time.time() - start_time) * 1000
             logger.info(f"⏱️  Total encryption time: {encryption_time:.2f}ms")
             
-            histogram_data = {'original': original_histogram, 'encrypted': encrypted_histogram}
-            histogram_b64 = base64.b64encode(json.dumps(histogram_data).encode('utf-8')).decode('utf-8')
+            # Combine histogram and security analysis data
+            analysis_data = {
+                'histograms': {'original': original_histogram, 'encrypted': encrypted_histogram},
+                'security_metrics': security_analysis
+            }
+            analysis_b64 = base64.b64encode(json.dumps(analysis_data).encode('utf-8')).decode('utf-8')
             
             logger.info("🎉 Image encryption successful! Sending response...")
             return Response(
@@ -1179,7 +1248,7 @@ async def encrypt_image(
                 headers={
                     "X-Sbox-Type": sbox_type.lower(),
                     "X-Encryption-Time": f"{encryption_time:.2f}",
-                    "X-Histogram-Data": histogram_b64,
+                    "X-Histogram-Data": analysis_b64,  # Now includes histograms and security metrics
                     "Content-Disposition": 'attachment; filename="encrypted_image.png"'
                 }
             )
@@ -1253,4 +1322,12 @@ async def decrypt_image(
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=5000, reload=True)
+    
+    print("=" * 60)
+    print("Advanced S-Box 44 Analyzer API")
+    print("=" * 60)
+    print("\nStarting server on http://localhost:8000")
+    print("API Documentation: http://localhost:8000/docs")
+    print("=" * 60)
+    
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

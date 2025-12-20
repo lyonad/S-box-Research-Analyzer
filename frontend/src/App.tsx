@@ -180,23 +180,23 @@ function App() {
       // Generate custom S-box if custom parameters are set
       if (hasCustomParams) {
         try {
-      const sboxResponse = await apiService.generateSBox(
-        false, // Don't use use_k44 flag when we have explicit matrix
-        customParams.matrix,
-        customParams.constant
-      );
+          const sboxResponse = await apiService.generateSBox(
+            false, // Don't use use_k44 flag when we have explicit matrix
+            customParams.matrix,
+            customParams.constant
+          );
           
           customSBoxToCompare = sboxResponse.sbox;
       
-      // Determine matrix name for display
-      const matrixName = sboxResponse.matrix_used || 
-        (customParams.useCustom ? 'Custom Matrix' : 'Selected Matrix');
+          // Determine matrix name for display
+          const matrixName = sboxResponse.matrix_used || 
+            (customParams.useCustom ? 'Custom Matrix' : 'Selected Matrix');
       
-      // Store parameters for display
+          // Store parameters for display
           customSBoxParamsToStore = {
-        matrix: [...customParams.matrix],
-        matrixName: matrixName,
-        constant: customParams.constant,
+            matrix: [...customParams.matrix],
+            matrixName: matrixName,
+            constant: customParams.constant,
           };
           
           // Store custom S-box and params
@@ -204,21 +204,75 @@ function App() {
           setCustomSBoxParams(customSBoxParamsToStore);
           setCustomValidation(sboxResponse.validation || null);
       
-          // Analyze custom S-box
-      const analysisResponse = await apiService.analyzeSBox(
-        sboxResponse.sbox,
-        `${matrixName} S-box (C=0x${customParams.constant.toString(16).toUpperCase()})`
-      );
-      setCustomAnalysis(analysisResponse);
-    } catch (err: unknown) {
+          // Analyze custom S-box (optional, comparison will also analyze it)
+          try {
+            const analysisResponse = await apiService.analyzeSBox(
+              sboxResponse.sbox,
+              `${matrixName} S-box (C=0x${customParams.constant.toString(16).toUpperCase()})`
+            );
+            setCustomAnalysis(analysisResponse);
+          } catch (analysisErr) {
+            console.warn('Failed to analyze custom S-box separately, will use comparison result:', analysisErr);
+            // Continue - comparison will analyze it anyway
+          }
+        } catch (err: unknown) {
           console.warn('Failed to generate custom S-box, continuing with K44 and AES only:', err);
           // Continue with comparison even if custom generation fails
+          // Comparison will still show K44 and AES
         }
       }
 
-      // Generate comparison with K44, AES, and custom (if available)
-      const data = await apiService.compareSBoxes(customSBoxToCompare);
-      setComparisonData(data);
+      // ALWAYS generate comparison with K44, AES, and custom (if available)
+      // This ensures comparison always appears even if custom generation failed
+      // Comparison is the core feature and must always succeed
+      try {
+        const data = await apiService.compareSBoxes(customSBoxToCompare);
+        
+        // Always set comparison data (K44 and AES are always present)
+        setComparisonData(data);
+        
+        // Update custom S-box from comparison if available
+        if (data.custom_sbox && !customSBox) {
+          setCustomSBox(data.custom_sbox);
+        }
+        
+        // Update custom analysis from comparison if available (more reliable)
+        if (data.custom_analysis) {
+          const customName = customSBoxParamsToStore 
+            ? `${customSBoxParamsToStore.matrixName} S-box (C=0x${customSBoxParamsToStore.constant.toString(16).toUpperCase()})`
+            : 'Custom S-box';
+          
+          setCustomAnalysis({
+            sbox_name: customName,
+            ...data.custom_analysis,
+            analysis_time_ms: data.analysis_time_ms / 3, // Approximate
+          });
+        }
+        
+        // Update custom validation from comparison if available
+        if (data.custom_validation) {
+          setCustomValidation(data.custom_validation);
+        }
+        
+        // Update custom params if we have custom S-box but no params stored
+        if (data.custom_sbox && data.custom_analysis && !customSBoxParamsToStore) {
+          setCustomSBoxParams({
+            matrix: customParams.matrix,
+            matrixName: 'Custom Matrix',
+            constant: customParams.constant,
+          });
+        }
+      } catch (compareErr: unknown) {
+        // If comparison fails completely, this is a critical error
+        // But we should still try to show what we have
+        const detail = extractBackendError(compareErr) || 'Failed to generate comparison. Please check backend connection.';
+        setError(detail);
+        console.error('Comparison error:', compareErr);
+        
+        // If we have custom S-box generated, we can still show it
+        // But comparison is critical, so we show error
+        // Comparison will be null, so tabs won't show, but error message will guide user
+      }
     } catch (err: unknown) {
       const detail =
         extractBackendError(err) ||

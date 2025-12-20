@@ -18,7 +18,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 30000, // 30 second timeout
+  timeout: 120000, // 120 seconds (2 minutes) for heavy operations like comparison and analysis
   withCredentials: false,
 });
 
@@ -58,7 +58,13 @@ api.interceptors.response.use(
     } else if (error.request) {
       // Request made but no response received
       console.error('Network error:', error.message);
-      throw new Error('Unable to connect to server. Please check your connection.');
+      
+      // Check if it's a timeout error
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        throw new Error('Request timeout. The operation is taking longer than expected. Please try again or use a smaller dataset.');
+      }
+      
+      throw new Error('Unable to connect to server. Please check your connection and ensure the backend is running.');
     }
     
     return Promise.reject(error);

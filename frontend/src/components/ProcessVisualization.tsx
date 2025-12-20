@@ -190,9 +190,6 @@ const ProcessVisualization: React.FC = () => {
         <div className="rounded-2xl border border-white/10 bg-white/5 p-5 sm:p-6">
           <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
             <h4 className="text-white text-lg font-heading">10 Pengujian Kriptografi</h4>
-            <span className="text-xs font-semibold text-text-primary/70">
-              Nilai terukur langsung dari backend FastAPI
-            </span>
           </div>
           <p className="text-sm text-text-primary mb-4">
             Mayoritas metrik menggunakan prinsip “semakin kecil semakin baik”. Pengecualian:

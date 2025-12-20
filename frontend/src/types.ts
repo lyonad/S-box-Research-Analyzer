@@ -169,3 +169,76 @@ export interface DecryptResponse {
   decryption_time_ms: number;
 }
 
+export interface ImageEncryptionSecurityMetrics {
+  entropy: {
+    original: {
+      red?: number;
+      green?: number;
+      blue?: number;
+      overall: number;
+    };
+    encrypted: {
+      red?: number;
+      green?: number;
+      blue?: number;
+      overall: number;
+    };
+  };
+  npcr: {
+    red?: number;
+    green?: number;
+    blue?: number;
+    overall: number;
+  };
+  uaci: {
+    red?: number;
+    green?: number;
+    blue?: number;
+    overall: number;
+  };
+  correlation: {
+    original: {
+      horizontal: {
+        red?: number;
+        green?: number;
+        blue?: number;
+        overall: number;
+      };
+      vertical: {
+        red?: number;
+        green?: number;
+        blue?: number;
+        overall: number;
+      };
+      diagonal: {
+        red?: number;
+        green?: number;
+        blue?: number;
+        overall: number;
+      };
+      average: number;
+    };
+    encrypted: {
+      horizontal: {
+        red?: number;
+        green?: number;
+        blue?: number;
+        overall: number;
+      };
+      vertical: {
+        red?: number;
+        green?: number;
+        blue?: number;
+        overall: number;
+      };
+      diagonal: {
+        red?: number;
+        green?: number;
+        blue?: number;
+        overall: number;
+      };
+      average: number;
+    };
+  };
+}
+

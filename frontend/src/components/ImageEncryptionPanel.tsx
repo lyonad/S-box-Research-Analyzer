@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import HistogramChart from './HistogramChart';
+import ImageSecurityMetrics from './ImageSecurityMetrics';
 import { getApiBaseUrl } from '../api';
 
 interface ImageEncryptionPanelProps {
@@ -32,6 +33,7 @@ const ImageEncryptionPanel: React.FC<ImageEncryptionPanelProps> = ({
       original: HistogramData;
       encrypted: HistogramData;
     };
+    securityMetrics?: any; // ImageEncryptionSecurityMetrics
   } | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -85,10 +87,18 @@ const ImageEncryptionPanel: React.FC<ImageEncryptionPanelProps> = ({
       }
 
       const apiUrl = `${getApiBaseUrl()}/encrypt-image`;
+      
+      // Create AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 minutes for image encryption
+      
       const response = await fetch(apiUrl, {
         method: 'POST',
         body: formData,
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ detail: 'Encryption failed' }));
@@ -105,18 +115,29 @@ const ImageEncryptionPanel: React.FC<ImageEncryptionPanelProps> = ({
       // Convert from ms to seconds
       const time = parseFloat(encryptionTime || '0') / 1000;
 
-      // Parse histogram data if available
+      // Parse histogram and security metrics data if available
       let histograms: { original: HistogramData; encrypted: HistogramData } | undefined;
+      let securityMetrics: any | undefined;
       if (histogramDataHeader) {
         try {
           const decoded = atob(histogramDataHeader);
           const parsed = JSON.parse(decoded);
-          histograms = {
-            original: parsed.original,
-            encrypted: parsed.encrypted,
-          };
+          if (parsed.histograms) {
+            // New format with histograms and security_metrics
+            histograms = {
+              original: parsed.histograms.original,
+              encrypted: parsed.histograms.encrypted,
+            };
+            securityMetrics = parsed.security_metrics;
+          } else {
+            // Old format (backward compatibility)
+            histograms = {
+              original: parsed.original,
+              encrypted: parsed.encrypted,
+            };
+          }
         } catch (e) {
-          console.error('Failed to parse histogram data:', e);
+          console.error('Failed to parse analysis data:', e);
         }
       }
 
@@ -125,9 +146,19 @@ const ImageEncryptionPanel: React.FC<ImageEncryptionPanelProps> = ({
         sboxType: sboxTypeHeader || sboxType,
         time,
         histograms,
+        securityMetrics,
       });
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Encryption failed';
+      let errorMessage = 'Encryption failed';
+      if (err instanceof Error) {
+        if (err.name === 'AbortError' || err.message.includes('aborted') || err.message.includes('timeout')) {
+          errorMessage = 'Request timeout. Image encryption is taking too long (max 3 minutes). Please try with a smaller image or check your connection.';
+        } else {
+          errorMessage = err.message;
+        }
+      } else if (typeof err === 'object' && err !== null && 'name' in err && err.name === 'AbortError') {
+        errorMessage = 'Request timeout. Image encryption is taking too long (max 3 minutes). Please try with a smaller image or check your connection.';
+      }
       setError(errorMessage);
       console.error('Encryption error:', err);
     } finally {
@@ -163,10 +194,18 @@ const ImageEncryptionPanel: React.FC<ImageEncryptionPanelProps> = ({
       }
 
       const apiUrl = `${getApiBaseUrl()}/decrypt-image`;
+      
+      // Create AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 minutes for image decryption
+      
       const response = await fetch(apiUrl, {
         method: 'POST',
         body: formData,
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ detail: 'Decryption failed' }));
@@ -194,7 +233,16 @@ const ImageEncryptionPanel: React.FC<ImageEncryptionPanelProps> = ({
         time,
       });
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Decryption failed';
+      let errorMessage = 'Decryption failed';
+      if (err instanceof Error) {
+        if (err.name === 'AbortError' || err.message.includes('aborted') || err.message.includes('timeout')) {
+          errorMessage = 'Request timeout. Image decryption is taking too long (max 3 minutes). Please try with a smaller image or check your connection.';
+        } else {
+          errorMessage = err.message;
+        }
+      } else if (typeof err === 'object' && err !== null && 'name' in err && err.name === 'AbortError') {
+        errorMessage = 'Request timeout. Image decryption is taking too long (max 3 minutes). Please try with a smaller image or check your connection.';
+      }
       setError(errorMessage);
       console.error('Decryption error:', err);
     } finally {
@@ -447,6 +495,11 @@ const ImageEncryptionPanel: React.FC<ImageEncryptionPanelProps> = ({
                 Gambar terenkripsi yang baik akan memiliki histogram yang lebih merata dibandingkan gambar asli.
               </p>
             </div>
+          )}
+
+          {/* Security Metrics */}
+          {result.securityMetrics && mode === 'encrypt' && (
+            <ImageSecurityMetrics metrics={result.securityMetrics} />
           )}
         </div>
       )}
