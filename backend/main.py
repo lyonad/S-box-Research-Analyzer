@@ -1295,7 +1295,10 @@ async def decrypt_image(
             
         key_bytes = _prepare_key(key)
         cipher = create_cipher(sbox_type.lower(), custom_sbox_list)
-        decrypted_bytes = cipher.decrypt(encrypted_data, key_bytes)
+        try:
+            decrypted_bytes = cipher.decrypt(encrypted_data, key_bytes)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Mungkin kunci kamu salah!")
         
         try:
             decrypted_img = Image.open(io.BytesIO(decrypted_bytes))
@@ -1316,6 +1319,8 @@ async def decrypt_image(
                 "Content-Disposition": 'attachment; filename="decrypted_image.png"'
             }
         )
+    except HTTPException:
+        raise
     except Exception as e:
         import traceback
         raise HTTPException(status_code=500, detail=f"{str(e)}\n{traceback.format_exc()}")
